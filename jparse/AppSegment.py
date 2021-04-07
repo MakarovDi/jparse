@@ -3,6 +3,7 @@ from typing import IO, Tuple
 from jparse import tools
 from jparse.JpegMarker import JpegMarker
 from jparse.JpegSegment import JpegSegment
+from jparse.TiffHeader import TiffHeader
 
 # TODO: special class for JFIF [APP0] segment
 # TODO: special class for Exif [APP1] segment
@@ -21,6 +22,8 @@ class AppSegment(JpegSegment):
 
     @property
     def tiff_header(self) -> 'TiffHeader':
+        if not self.is_loaded:
+            self.load()
         return self._tiff_header
 
     @property
@@ -41,14 +44,15 @@ class AppSegment(JpegSegment):
 
     def load(self):
         if self.is_loaded: return
+        self._stream.seek(self.offset)
 
         tools.logger.debug(f'[{self.marker.name}] segment loading...')
         self._stream.seek(self.offset + JpegMarker.MARKER_SIZE + JpegMarker.LENGTH_SIZE)
 
         self._name = parse_app_name(self._stream)
-        tools.logger.debug(f'-> name: {self.name}')
+        tools.logger.debug(f'-> name: {self._name}')
 
-        if self.name.upper() == 'JFIF':
+        if self._name.upper() == 'JFIF':
             self._is_loaded = True
             return
 
@@ -59,8 +63,8 @@ class AppSegment(JpegSegment):
 
         # parse tiff header
 
-        # self._tiff_header = TiffHeader.parse(self._stream)
-        # tools.logger.debug(f'-> {self.tiff_header}')
+        self._tiff_header = TiffHeader.parse(self._stream)
+        tools.logger.debug(f'-> {self._tiff_header}')
 
 
 
@@ -70,9 +74,9 @@ def parse_app_name(stream: IO) -> str:
     while True:
         byte = tools.read_bytes_strict(stream, 1)
 
-        if byte[0] != 0x00:
+        if byte[0] == 0x00:
             break
 
-        name = name + bytes.decode('ascii')
+        name = name + byte.decode('ascii')
 
     return name
