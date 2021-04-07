@@ -77,6 +77,32 @@ class JpegMarker:
         self._is_mask = False
 
 
+    @classmethod
+    def detect(cls, signature: int) -> 'JpegMarker':
+        if (signature >> 8) != JpegMarker.START:
+            raise RuntimeError(f'invalid signature: 0x{signature:04X}')
+
+        marker = single_markers.get(signature)
+        if marker is not None:
+            return marker
+
+        # check for APP0-APP15
+        if APPn.check_mask(signature):
+            app_marker = APPn.copy()
+            app_marker.set_index(index=APPn.extract_index(signature))
+            return app_marker
+
+        # check for RST0-RST7
+        if RSTn.check_mask(signature):
+            rst_marker = RSTn.copy()
+            rst_marker.set_index(index=RSTn.extract_index(signature))
+            return rst_marker
+
+        return JpegMarker(signature=signature,
+                          name=f'UNK[0x{signature:04X}]',
+                          info='Unknown')
+
+
 SOI = JpegMarker(signature=0xFFD8, name='SOI', info='Start of Image')
 EOI = JpegMarker(signature=0xFFD9, name='EOI', info='End of Image')
 SOF0 = JpegMarker(signature=0xFFC0, name='SOF0', info='Start of Frame (Baseline)')
@@ -89,3 +115,15 @@ COM = JpegMarker(signature=0xFFFE, name='COM', info='Comment')
 
 RSTn = JpegMarker(signature=0xFFD7, name='RST', is_mask=True, info='Restart')
 APPn = JpegMarker(signature=0xFFEF, name='APP', is_mask=True, info='Application-specific')
+
+
+single_markers = {
+    SOI.signature : SOI,
+    EOI.signature : EOI,
+    SOF0.signature: SOF0,
+    SOF2.signature: SOF2,
+    DHT.signature : DHT,
+    DQT.signature : DQT,
+    DRI.signature : DRI,
+    SOS.signature : SOS
+}
