@@ -1,5 +1,5 @@
 from typing import IO
-from jparse.JpegMarker import JpegMarker
+from jparse.JpegMarker import JpegMarker, APPn
 from jparse import tools
 
 
@@ -20,6 +20,20 @@ class JpegSegment:
     @property
     def is_loaded(self) -> bool:
         return False
+
+
+    @staticmethod
+    def create(marker: JpegMarker, stream: IO, offset: int, size: int) -> 'JpegSegment':
+        if APPn.check_mask(marker.signature):
+            from jparse.AppSegment import AppSegment
+            SegmentType = AppSegment
+        else:
+            SegmentType = JpegSegment
+
+        return SegmentType(marker=marker,
+                           stream=stream,
+                           offset=offset,
+                           size=size)
 
 
     def __init__(self, marker: JpegMarker, stream: IO, offset: int, size: int):

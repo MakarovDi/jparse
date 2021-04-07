@@ -13,7 +13,7 @@ class ByteOrder(IntEnum):
 
 
 
-def convert_endianness(data: bytes, byte_order: ByteOrder) -> int:
+def convert(data: bytes, byte_order: ByteOrder) -> int:
     byte_cnt = len(data)
     assert byte_cnt in (1, 2, 4), 'unsupported data size'
 
@@ -24,5 +24,5 @@ def convert_endianness(data: bytes, byte_order: ByteOrder) -> int:
 
 
 
-convert_big_endian = partial(convert_endianness, byte_order=ByteOrder.BIG_ENDIAN)
-convert_little_endian = partial(convert_endianness, byte_order=ByteOrder.LITTLE_ENDIAN)
+convert_big_endian = partial(convert, byte_order=ByteOrder.BIG_ENDIAN)
+convert_little_endian = partial(convert, byte_order=ByteOrder.LITTLE_ENDIAN)

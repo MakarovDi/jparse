@@ -1,13 +1,18 @@
 from io import SEEK_CUR
-from typing import IO, List
+from typing import IO, List, OrderedDict
 
 from jparse import tools
 from jparse import endianess
-from jparse.JpegMarker import JpegMarker, SOI, EOI, SOS
+from jparse.JpegMarker import JpegMarker, SOI, EOI, SOS, APPn
 from jparse.JpegSegment import JpegSegment
+from jparse.AppSegment import AppSegment
 
 
 class JpegMetaParser:
+
+    @property
+    def app_segments(self) -> OrderedDict[str, AppSegment]:
+        return self._app_segments
 
     @property
     def image_data_offset(self) -> int:
@@ -32,9 +37,12 @@ class JpegMetaParser:
         self._sos = None
         self._eoi = structure[-1] if structure[-1].marker == EOI else None
 
+        self._app_segments = OrderedDict[str, AppSegment]()
         for segment in structure:
             if segment.marker == SOS:
                 self._sos = segment
+            elif APPn.check_mask(segment.marker.signature):
+                self._app_segments[segment.marker.name.upper()] = segment
 
 
 
@@ -42,7 +50,7 @@ def scan_jpeg_structure(stream: IO, include_eoi: bool) -> List[JpegSegment]:
     offset = stream.tell()
 
     check_jpeg_signature(stream)
-    segment = JpegSegment(marker=SOI, stream=stream, offset=offset, size=JpegMarker.MARKER_SIZE)
+    segment = JpegSegment.create(marker=SOI, stream=stream, offset=offset, size=JpegMarker.MARKER_SIZE)
     segment.log()
     structure = [ segment ]
 
@@ -61,7 +69,7 @@ def scan_jpeg_structure(stream: IO, include_eoi: bool) -> List[JpegSegment]:
         segment_size = tools.read_bytes_strict(stream, JpegMarker.LENGTH_SIZE)
         segment_size = endianess.convert_big_endian(segment_size) + JpegMarker.MARKER_SIZE
 
-        segment = JpegSegment(marker=segment_marker, stream=stream, offset=offset, size=segment_size)
+        segment = JpegSegment.create(marker=segment_marker, stream=stream, offset=offset, size=segment_size)
         segment.log()
         structure.append(segment)
 
@@ -78,7 +86,7 @@ def scan_jpeg_structure(stream: IO, include_eoi: bool) -> List[JpegSegment]:
         if eoi_offset == 0:
             raise RuntimeError('EOI is not found')
 
-        segment = JpegSegment(marker=EOI, stream=stream, offset=offset + eoi_offset, size=JpegMarker.MARKER_SIZE)
+        segment = JpegSegment.create(marker=EOI, stream=stream, offset=offset + eoi_offset, size=JpegMarker.MARKER_SIZE)
         segment.log()
         structure.append(segment)
 

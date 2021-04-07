@@ -4,10 +4,15 @@ JPEG structure and Exif metadata parser.
 
 ![JPEG Structure](docs/jpeg_format.png)
 
+## Requirements
+
+* Python >= 3.7
+* No extra dependencies
+
 
 ## Logging
 
-### Enumerate JPEG-file segments
+### JPEG-file segments enumeration
 
 ```python
 import logging
