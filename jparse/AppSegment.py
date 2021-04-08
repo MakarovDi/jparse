@@ -29,7 +29,7 @@ class AppSegment(JpegSegment):
         return self._tiff_header
 
     @property
-    def ifd(self) -> Tuple:
+    def ifd(self) -> Tuple[ImageFileDirectory, ...]:
         if not self.is_loaded:
             self.load()
         return self._ifd

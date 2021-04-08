@@ -8,7 +8,7 @@ class ByteOrder(IntEnum):
     BIG_ENDIAN    = 1
 
     @property
-    def unpack_format_chr(self) -> chr:
+    def format_chr(self) -> chr:
         return { ByteOrder.LITTLE_ENDIAN: '<', ByteOrder.BIG_ENDIAN: '>' }[self]
 
 
@@ -18,7 +18,7 @@ def convert(data: bytes, byte_order: ByteOrder) -> int:
     assert byte_cnt in (1, 2, 4), 'unsupported data size'
 
     format_str = { 1: 'B', 2: 'H', 4: 'I' }[byte_cnt]
-    result = struct.unpack(f'{byte_order.unpack_format_chr}{format_str}', data)
+    result = struct.unpack(f'{byte_order.format_chr}{format_str}', data)
 
     return int(result[0])
 

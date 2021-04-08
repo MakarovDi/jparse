@@ -85,7 +85,7 @@ class IfdField:
         self._stream.seek(self.value_offset)
         data = tools.read_bytes_strict(self._stream, self.count*self.field_type.byte_count)
 
-        # TODO: self._value = parse_value
+        self._value = parse_value(data=data, count=self.count, field_type=self.field_type, byte_order=self._byte_order)
         self._is_loaded = True
 
 
@@ -126,3 +126,46 @@ class IfdField:
                         value_offset=value_offset,
                         size=field_size,
                         offset=field_offset)
+
+
+def parse_value(data : bytes,
+                count: int,
+                field_type: FieldType,
+                byte_order: ByteOrder) -> ValueType:
+    if field_type == FieldType.Unknown:
+        raise NotImplementedError('can not parse unknown value type')
+
+    offset = 0
+    value = []
+    for i in range(count):
+        value_data = data[ offset + field_type.byte_count*i : offset + field_type.byte_count*(i+1) ]
+        value_data = unpack_value(value_data, field_type=field_type, byte_order=byte_order)
+        value.append(value_data)
+
+    if field_type == field_type.ASCII:
+        return ''.join(value)
+
+    if len(value) == 1:
+        return value[0]
+
+    return tuple(value)
+
+
+def unpack_value(data: bytes,
+                 field_type: FieldType,
+                 byte_order: ByteOrder) -> Union[Number, chr]:
+    assert len(data) == field_type.byte_count, 'invalid dat size'
+
+    if field_type.is_rational:
+        from fractions import Fraction
+        numerator = struct.unpack(f'{byte_order.format_chr}{field_type.type_chr}', data[:4])
+        denominator = struct.unpack(f'{byte_order.format_chr}{field_type.type_chr}', data[4:])
+        return Fraction(numerator=numerator[0], denominator=denominator[0])
+
+    value = struct.unpack(f'{byte_order.format_chr}{field_type.type_chr}', data)
+    value = value[0]
+
+    if field_type == FieldType.ASCII:
+        value = value.decode('ascii') if value[0] != 0 else ''
+
+    return value

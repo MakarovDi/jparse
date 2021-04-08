@@ -35,3 +35,23 @@ class FieldType(IntEnum):
     @classmethod
     def is_unknown(cls, type_id: int) -> bool:
         return type_id >= cls.Unknown
+
+    @property
+    def is_rational(self) -> bool:
+        return self == FieldType.Rational or self == FieldType.SRational
+
+    @property
+    def type_chr(self) -> chr:
+        return { FieldType.Byte     : 'B',
+                 FieldType.ASCII    : 'c',
+                 FieldType.Short    : 'H',
+                 FieldType.Long     : 'L',
+                 FieldType.Rational : 'I',
+                 FieldType.SByte    : 'b',
+                 FieldType.Undefined: 'B',
+                 FieldType.SShort   : 'h',
+                 FieldType.SLong    : 'l',
+                 FieldType.SRational: 'i',
+                 FieldType.Float    : 'f',
+                 FieldType.Double   : 'd',
+                 FieldType.Unknown  : '' }[self]
