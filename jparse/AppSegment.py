@@ -4,6 +4,7 @@ from jparse import tools
 from jparse.JpegMarker import JpegMarker
 from jparse.JpegSegment import JpegSegment
 from jparse.TiffHeader import TiffHeader
+from jparse.ImageFileDirectory import ImageFileDirectory
 
 # TODO: special class for JFIF [APP0] segment
 # TODO: special class for Exif [APP1] segment
@@ -17,11 +18,12 @@ class AppSegment(JpegSegment):
     @property
     def name(self) -> str:
         if not self.is_loaded:
-            self.load() # TODO: load only name
+            # TODO: load only name
+            self.load()
         return self._name
 
     @property
-    def tiff_header(self) -> 'TiffHeader':
+    def tiff_header(self) -> TiffHeader:
         if not self.is_loaded:
             self.load()
         return self._tiff_header
@@ -65,6 +67,35 @@ class AppSegment(JpegSegment):
 
         self._tiff_header = TiffHeader.parse(self._stream)
         tools.logger.debug(f'-> {self._tiff_header}')
+
+        # parse IFD
+
+        next_ifd_offset = self._tiff_header.offset + self._tiff_header.ifd0_offset
+        next_offset_filed_used = False
+        ifd = []
+        while True:
+            self._stream.seek(next_ifd_offset)
+            tools.logger.debug(f'-> IDF #{len(ifd)}, offset=0x{next_ifd_offset:08X}')
+
+            ifd_i = ImageFileDirectory.parse(self._stream, tiff_header=self._tiff_header)
+            ifd.append(ifd_i)
+
+            if next_offset_filed_used and ifd_i.next_ifd_offset == 0:
+                break # the last ifd is reached
+
+            if ifd_i.next_ifd_offset > 0:
+                next_ifd_offset = self._tiff_header.offset + ifd_i.next_ifd_offset
+                next_offset_filed_used = True
+            else:
+                assert ifd_i.offset + ifd_i.size <= self.offset + self.size, 'smth wrong with sizes'
+
+                # some camera manufactures put IFDs one by one without next_ifd_offset
+                if ifd_i.offset + ifd_i.size == self.offset + self.size:
+                    break # the end of the segment is reached
+
+                next_ifd_offset = ifd_i.offset + ifd_i.size
+
+        self._ifd = tuple(ifd)
 
 
 

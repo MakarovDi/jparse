@@ -31,3 +31,7 @@ class FieldType(IntEnum):
                  FieldType.Float    : 4,
                  FieldType.Double   : 8,
                  FieldType.Unknown  : 0 }[self]
+
+    @classmethod
+    def is_unknown(cls, type_id: int) -> bool:
+        return type_id >= cls.Unknown
