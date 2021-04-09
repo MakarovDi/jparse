@@ -1,17 +1,17 @@
 JPEG structure and Exif metadata parsing library.
 
-## JPEG File Structure
-
-![JPEG Structure](docs/jpeg_format.png)
-
 ## Requirements
 
 * Python >= 3.7
 * No extra dependencies
+## JPEG File Structure
+
+
+![JPEG Structure](docs/jpeg_format.png)
 
 ## Examples
 
-### Read TAG value
+### Reading TAG value
 
 ```python
 from jparse import JpegMetaParser, TagPath
@@ -29,13 +29,13 @@ print(f'Image Width: {image_width}')
 print(f'DateTime: {date_time}')
 ```
 
-output:
+Output:
 ```
 Image Width: 4096
 DateTime: 2021:03:29 21:27:04
 ```
 
-### Enumerate IFD's fields
+### Enumerating IFD's fields
 
 ```python
 from jparse import JpegMetaParser
@@ -50,7 +50,7 @@ with open('image.jpg', 'rb') as f:
         print(f'TAG 0x{tag_id:04X}: {field.value}')
 ```
 
-output:
+Output:
 ```
 TAG 0x0100: 512
 TAG 0x0101: 384
@@ -76,7 +76,7 @@ logging.basicConfig(format='[%(name)s][%(levelname)s]: %(message)s', level=loggi
 with open('image.jpg', 'rb') as f:
         parser = JpegMetaParser(f)
 ```
-output:
+Output:
 ```
 [jparse][DEBUG]: 0x00000000 -> SOI  : 2 bytes
 [jparse][DEBUG]: 0x00000002 -> APP1 : 30251 bytes
@@ -113,7 +113,7 @@ with open('image.jpg', 'rb') as f:
     app1.load()
 ```
 
-output:
+Output:
 ```
 [jparse][DEBUG]: 0x00000000 -> SOI  : 2 bytes
 [jparse][DEBUG]: 0x00000002 -> APP1 : 30251 bytes
