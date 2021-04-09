@@ -1,11 +1,19 @@
 from io import SEEK_CUR
-from typing import IO, List, OrderedDict
+from typing import IO, List, OrderedDict, NamedTuple
 
 from jparse import tools
 from jparse import endianess
 from jparse.JpegMarker import JpegMarker, SOI, EOI, SOS, APPn
 from jparse.JpegSegment import JpegSegment
 from jparse.AppSegment import AppSegment
+from jparse.IfdField import ValueType
+from jparse.ImageFileDirectory import ImageFileDirectory
+
+
+class TagPath(NamedTuple):
+    app_name  : str
+    ifd_number: int
+    tag_id    : int
 
 
 class JpegMetaParser:
@@ -44,6 +52,22 @@ class JpegMetaParser:
             elif APPn.check_mask(segment.marker.signature):
                 self._app_segments[segment.marker.name.upper()] = segment
 
+
+    def get_tag_value(self, tag_path: TagPath) -> ValueType:
+        app_segment = self.app_segments.get(tag_path.app_name.upper())
+        if app_segment is None:
+            raise LookupError(f'APP segment "{tag_path.app_name.upper()}" is not found')
+
+        if not (0 <= tag_path.ifd_number < len(app_segment.ifd)):
+            raise IndexError(f'IFD index out of range: {tag_path.ifd_number}')
+
+        ifd: ImageFileDirectory = app_segment.ifd[tag_path.ifd_number]
+
+        field = ifd.fields.get(tag_path.tag_id)
+        if field is None:
+            raise LookupError(f'tag 0x{tag_path.tag_id:04X} is not found in IFD #{tag_path.ifd_number}')
+
+        return field.value
 
 
 def scan_jpeg_structure(stream: IO, include_eoi: bool) -> List[JpegSegment]:

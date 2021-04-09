@@ -110,7 +110,7 @@ class IfdField:
         field_size = count * type_id.byte_count
         if field_size <= 4:
             value_offset = field_offset + 8
-            stream.seek(4, io.SEEK_CUR) # skip value data # TODO: load immediately ?
+            stream.seek(4, io.SEEK_CUR) # skip value data
             field_size = IfdField.FIXED_SIZE # no extra data outsize the field structure
         else:
             value_offset = tools.read_bytes_strict(stream, 4)
