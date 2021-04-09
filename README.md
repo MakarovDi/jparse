@@ -9,6 +9,58 @@ JPEG structure and Exif metadata parsing library.
 * Python >= 3.7
 * No extra dependencies
 
+## Examples
+
+### Read TAG value
+
+```python
+from jparse import JpegMetaParser, TagPath
+
+tag_image_width = TagPath(app_name='APP1', ifd_number=0, tag_id=0x0100)
+tag_date_time = TagPath(app_name='APP1', ifd_number=0, tag_id=0x0132)
+
+with open('image.jpg', 'rb') as f:
+    parser = JpegMetaParser(f)
+
+    image_width = parser.get_tag_value(tag_image_width)
+    date_time = parser.get_tag_value(tag_date_time)
+
+print(f'Image Width: {image_width}')
+print(f'DateTime: {date_time}')
+```
+
+output:
+```
+Image Width: 4096
+DateTime: 2021:03:29 21:27:04
+```
+
+### Enumerate IFD's fields
+
+```python
+from jparse import JpegMetaParser
+
+with open('image.jpg', 'rb') as f:
+    parser = JpegMetaParser(f)
+    app1= parser.app_segments['APP1']
+
+    ifd1 = app1.ifd[1] # select IFD #1
+
+    for tag_id, field in ifd1.fields.items():
+        print(f'TAG 0x{tag_id:04X}: {field.value}')
+```
+
+output:
+```
+TAG 0x0100: 512
+TAG 0x0101: 384
+TAG 0x0103: 6
+TAG 0x0112: 0
+TAG 0x011A: 72
+TAG 0x011B: 72
+...
+```
+
 
 ## Logging
 
@@ -112,6 +164,7 @@ output:
 ## References
 
 * [Exif Format v2](https://www.exif.org/Exif2-2.PDF)
+* [TIFF File Format Specifications](https://docs.fileformat.com/image/tiff/)
 * [ExifLibrary for .NET](https://www.codeproject.com/Articles/43665/ExifLibrary-for-NET)
 * [The Metadata in JPEG files](https://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_JPEG_files)
 * [Manufacturer-specific Tags](https://exiftool.org/TagNames/JPEG.html)
