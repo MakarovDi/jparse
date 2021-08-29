@@ -1,5 +1,7 @@
 JPEG structure and Exif metadata parsing library.
 
+![JPEG Structure](docs/jpeg_format.png)
+
 ## Requirements
 
 * Python >= 3.7
@@ -7,7 +9,12 @@ JPEG structure and Exif metadata parsing library.
 ## JPEG File Structure
 
 
-![JPEG Structure](docs/jpeg_format.png)
+## Install
+
+```
+git clone https://github.com/MakarovDi/jparse.git
+pip install ./jparse
+```
 
 ## Examples
 
