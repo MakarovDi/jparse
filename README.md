@@ -7,9 +7,7 @@ JPEG structure and Exif metadata parsing library.
 
 ## JPEG File Structure
 
-<img src='docs/jpeg_format.png' width='500'>
-
-[//]: # (![JPEG Structure]&#40;docs/jpeg_format.png&#41;)
+<img src='docs/jpeg_format.png' width='600'>
 
 ## Requirements
 
@@ -20,8 +18,7 @@ JPEG structure and Exif metadata parsing library.
 ## Install
 
 ```
-git clone https://github.com/MakarovDi/jparse.git
-pip install ./jparse
+pip install "jparse @ git+https://github.com/MakarovDi/jparse.git@master"
 ```
 
 ## Examples
