@@ -1,8 +1,15 @@
+# jparse
+
+[![python](https://img.shields.io/badge/Python-3.7-blue?logo=python&logoColor=white)](https://docs.python.org/3/whatsnew/3.7.html)
+[![license](https://img.shields.io/badge/License-BSD%203--Clause-green)](https://choosealicense.com/licenses/mit/)
+
 JPEG structure and Exif metadata parsing library.
 
 ## JPEG File Structure
 
-![JPEG Structure](docs/jpeg_format.png)
+<img src='docs/jpeg_format.png' width='500'>
+
+[//]: # (![JPEG Structure]&#40;docs/jpeg_format.png&#41;)
 
 ## Requirements
 
@@ -43,14 +50,14 @@ Image Width: 4096
 DateTime: 2021:03:29 21:27:04
 ```
 
-### Enumerating IFD's fields
+### Listing IFD's fields
 
 ```python
 from jparse import JpegMetaParser
 
 with open('image.jpg', 'rb') as f:
     parser = JpegMetaParser(f)
-    app1= parser.app_segments['APP1']
+    app1 = parser.app_segments['APP1']
 
     ifd1 = app1.ifd[1] # select IFD #1
 
@@ -82,7 +89,7 @@ logging.basicConfig(format='[%(name)s][%(levelname)s]: %(message)s', level=loggi
 
 
 with open('image.jpg', 'rb') as f:
-        parser = JpegMetaParser(f)
+    parser = JpegMetaParser(f)
 ```
 Output:
 ```
@@ -167,6 +174,7 @@ Output:
 [jparse][DEBUG]: 		Field[0x0128]:     <FieldType.Short: 3>, count=1  , size=12, field_offset=0x00000506, value_offset=0x0000050E
 [jparse][DEBUG]: 		Field[0x0201]:      <FieldType.Long: 4>, count=1  , size=12, field_offset=0x00000512, value_offset=0x0000051A
 [jparse][DEBUG]: 		Field[0x0202]:      <FieldType.Long: 4>, count=1  , size=12, field_offset=0x0000051E, value_offset=0x00000526
+...
 ```
 
 ## License
