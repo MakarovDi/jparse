@@ -169,6 +169,11 @@ Output:
 [jparse][DEBUG]: 		Field[0x0202]:      <FieldType.Long: 4>, count=1  , size=12, field_offset=0x0000051E, value_offset=0x00000526
 ```
 
+## License
+
+This software is licensed under the `BSD-3-Clause` license.  
+See the [LICENSE](LICENSE) file for details.
+
 ## References
 
 * [Exif Format v2](https://www.exif.org/Exif2-2.PDF)
