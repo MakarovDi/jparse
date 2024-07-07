@@ -58,10 +58,9 @@ class JpegMetaParser:
         if app_segment is None:
             raise LookupError(f'APP segment "{tag_path.app_name.upper()}" is not found')
 
-        if not (0 <= tag_path.ifd_number < len(app_segment.ifd)):
-            raise IndexError(f'IFD index out of range: {tag_path.ifd_number}')
-
-        ifd: ImageFileDirectory = app_segment.ifd[tag_path.ifd_number]
+        ifd: ImageFileDirectory = app_segment.ifd(tag_path.ifd_number)
+        if ifd is None:
+            raise IndexError(f'IFD{tag_path.ifd_number} is not found')
 
         field = ifd.fields.get(tag_path.tag_id)
         if field is None:

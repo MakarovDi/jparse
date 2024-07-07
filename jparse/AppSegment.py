@@ -1,4 +1,4 @@
-from typing import IO, Tuple
+from typing import IO, Union
 
 from jparse import parser
 from jparse.log import logger
@@ -18,7 +18,6 @@ class AppSegment(JpegSegment):
 
     @property
     def name(self) -> str:
-        # TODO: load only name
         self.load()
         return self._name
 
@@ -27,11 +26,6 @@ class AppSegment(JpegSegment):
         self.load()
         return self._tiff_header
 
-    @property
-    def ifd(self) -> Tuple[ImageFileDirectory, ...]:
-        self.load()
-        return self._ifd
-
 
     def __init__(self, marker: JpegMarker, stream: IO, offset: int, size: int):
         super().__init__(marker=marker, stream=stream, offset=offset, size=size)
@@ -39,7 +33,31 @@ class AppSegment(JpegSegment):
         self._tiff_header = None
         self._name = None
         self._is_loaded = False
-        self._ifd = ()
+
+        # cache for lazy IFD loading
+        self._ifd = []
+        self._next_ifd_offset = None
+
+
+    def ifd(self, index: int) -> Union[ImageFileDirectory, None]:
+        self.load()
+
+        if len(self._ifd) > index:
+            # return IFD from the cache
+            return self._ifd[index]
+
+        # load IFD one by one till index reached or EOF
+        index -= len(self._ifd) - 1
+        ifd_next = None
+        while index > 0:
+            ifd_next = self._load_next_ifd()
+            if ifd_next is None:
+                return None # EOF
+
+            self._ifd.append(ifd_next) # save to cache
+            index -= 1
+
+        return ifd_next
 
 
     def load(self):
@@ -62,51 +80,42 @@ class AppSegment(JpegSegment):
         if byte[0] != 0x00:
             raise RuntimeError('unexpected format of APP segment')
 
-        # parse tiff header
-
         self._tiff_header = TiffHeader.parse(self._stream)
         logger.debug(f'-> {self._tiff_header}')
 
-        # parse IFD
+        # set offset for the first IFD (can't be empty)
+        self._next_ifd_offset = self._tiff_header.offset + self._tiff_header.ifd0_offset
+        self._is_loaded = True
 
-        next_ifd_offset = self._tiff_header.offset + self._tiff_header.ifd0_offset
-        next_offset_filed_used = False
-        ifd = []
-        while True:
-            self._stream.seek(next_ifd_offset)
-            logger.debug(f'-> IDF #{len(ifd)}, offset=0x{next_ifd_offset:08X}')
 
-            ifd_i = ImageFileDirectory.parse(self._stream, tiff_header=self._tiff_header)
-            ifd.append(ifd_i)
+    def _load_next_ifd(self) -> Union[ImageFileDirectory, None]:
+        assert self.is_loaded
 
-            if next_offset_filed_used and ifd_i.next_ifd_offset == 0:
-                break # the last ifd is reached
+        if self._next_ifd_offset is None:
+            # end of the segment, no more IFDs
+            return None
 
-            if ifd_i.next_ifd_offset > 0:
-                next_ifd_offset = self._tiff_header.offset + ifd_i.next_ifd_offset
-                next_offset_filed_used = True
+        self._stream.seek(self._next_ifd_offset)
+        logger.debug(f'-> IDF #{len(self._ifd)}, offset=0x{self._next_ifd_offset:08X}')
+
+        # parse IFD header and all fields (without filed value loading)
+        # note: IFD is not fully lazy because the IFD size must be known for the bad case (see below)
+        ifd_i = ImageFileDirectory.parse(self._stream, tiff_header=self._tiff_header)
+
+        # update offset for the next IFD
+        if ifd_i.next_ifd_offset > 0:
+            # Good case: next_ifd_offset provided
+            self._next_ifd_offset = self._tiff_header.offset + ifd_i.next_ifd_offset
+        else:
+            # Bad case: some cameras put IFDs one by one with next_ifd_offset=0.
+            #           In this case, an IFD object can't be lazy and must load all fields
+            #           to estimate IFD size and calculate offset to the next IFD.
+            if ifd_i.offset + ifd_i.size >= self.offset + self.size:
+                # the end of the segment is reached
+                if ifd_i.offset + ifd_i.size > self.offset + self.size:
+                    raise RuntimeError('smth wrong: IFD size is out of a segment size')
+                self._next_ifd_offset = None
             else:
-                assert ifd_i.offset + ifd_i.size <= self.offset + self.size, 'smth wrong with sizes'
+                self._next_ifd_offset = ifd_i.offset + ifd_i.size
 
-                # some camera manufactures put IFDs one by one without next_ifd_offset
-                if ifd_i.offset + ifd_i.size == self.offset + self.size:
-                    break # the end of the segment is reached
-
-                next_ifd_offset = ifd_i.offset + ifd_i.size
-
-        self._ifd = tuple(ifd)
-
-
-
-def parse_app_name(stream: IO) -> str:
-    name = ''
-
-    while True:
-        byte = reader.read_bytes_strict(stream, 1)
-
-        if byte[0] == 0x00:
-            break
-
-        name += byte.decode('ascii')
-
-    return name
+        return ifd_i
