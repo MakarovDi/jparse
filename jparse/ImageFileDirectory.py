@@ -1,6 +1,6 @@
 from typing import IO, OrderedDict
 
-from jparse import reader
+from jparse import parser
 from jparse import endianess
 from jparse.TiffHeader import TiffHeader
 from jparse.IfdField import IfdField
@@ -49,7 +49,7 @@ class ImageFileDirectory:
     def parse(cls, stream: IO, tiff_header: TiffHeader) -> 'ImageFileDirectory':
         ifd_offset = stream.tell()
 
-        field_count = reader.read_bytes_strict(stream, count=2)
+        field_count = parser.read_bytes_strict(stream, count=2)
         field_count = endianess.convert(field_count, byte_order=tiff_header.byte_order)
 
         fields = OrderedDict[int, IfdField]()
@@ -61,7 +61,7 @@ class ImageFileDirectory:
             fields[ifd_field.tag_id] = ifd_field
             size += ifd_field.size
 
-        next_ifd_offset = reader.read_bytes_strict(stream, 4)
+        next_ifd_offset = parser.read_bytes_strict(stream, 4)
         next_ifd_offset = endianess.convert(next_ifd_offset, byte_order=tiff_header.byte_order)
 
         return ImageFileDirectory(offset=ifd_offset,

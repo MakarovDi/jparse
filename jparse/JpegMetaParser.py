@@ -1,7 +1,7 @@
 from io import SEEK_CUR
 from typing import IO, List, OrderedDict, NamedTuple
 
-from jparse import reader
+from jparse import parser
 from jparse import endianess
 from jparse.JpegMarker import JpegMarker, SOI, EOI, SOS, APPn
 from jparse.JpegSegment import JpegSegment
@@ -73,7 +73,7 @@ class JpegMetaParser:
 def scan_jpeg_structure(stream: IO, include_eoi: bool) -> List[JpegSegment]:
     offset = stream.tell()
 
-    check_jpeg_signature(stream)
+    parser.read_jpeg_signature(stream)
     segment = JpegSegment.create(marker=SOI, stream=stream, offset=offset, size=JpegMarker.MARKER_SIZE)
     segment.log()
     structure = [ segment ]
@@ -90,7 +90,7 @@ def scan_jpeg_structure(stream: IO, include_eoi: bool) -> List[JpegSegment]:
         if segment_marker == EOI:
             raise RuntimeError('unexpected EOI marker before SOS marker')
 
-        segment_size = reader.read_bytes_strict(stream, JpegMarker.LENGTH_SIZE)
+        segment_size = parser.read_bytes_strict(stream, JpegMarker.LENGTH_SIZE)
         segment_size = endianess.convert_big_endian(segment_size) + JpegMarker.MARKER_SIZE
 
         segment = JpegSegment.create(marker=segment_marker, stream=stream, offset=offset, size=segment_size)
@@ -106,7 +106,7 @@ def scan_jpeg_structure(stream: IO, include_eoi: bool) -> List[JpegSegment]:
         segment_marker = stream.read(JpegMarker.MARKER_SIZE)
 
     if include_eoi:
-        eoi_offset = scan_for_eoi(stream)
+        eoi_offset = parser.scan_for_eoi(stream)
         if eoi_offset == 0:
             raise RuntimeError('EOI is not found')
 
@@ -115,35 +115,3 @@ def scan_jpeg_structure(stream: IO, include_eoi: bool) -> List[JpegSegment]:
         structure.append(segment)
 
     return structure
-
-
-def check_jpeg_signature(stream: IO):
-    marker = reader.read_bytes_strict(stream, JpegMarker.MARKER_SIZE)
-    marker = endianess.convert_big_endian(marker)
-
-    if marker != SOI.signature:
-        raise RuntimeError('file is not JPEG')
-
-
-def scan_for_eoi(stream: IO) -> int:
-    offset = 0
-
-    while True:
-        marker = stream.read(1)
-        if len(marker) < 1:
-            return 0  # not found
-
-        offset += 1
-        if marker[0] != JpegMarker.START:
-            continue
-
-        marker = stream.read(1)
-        if len(marker) < 1:
-            return 0  # not found
-
-        if marker[0] == (EOI.signature & 0xFF):
-            return offset -1
-
-        offset += 1
-
-    return 0

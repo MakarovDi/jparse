@@ -2,7 +2,7 @@ import io
 from numbers import Number
 from typing import Tuple, IO, Union
 
-from jparse import reader
+from jparse import parser
 from jparse.log import logger, logging
 from jparse import endianess
 from jparse.endianess import ByteOrder
@@ -85,7 +85,7 @@ class IfdField:
         if self.is_loaded: return
 
         self._stream.seek(self.value_offset)
-        data = reader.read_bytes_strict(self._stream, self.count*self.field_type.byte_count)
+        data = parser.read_bytes_strict(self._stream, self.count*self.field_type.byte_count)
 
         self._value = parse_value(data=data, count=self.count, field_type=self.field_type, byte_order=self._byte_order)
         self._is_loaded = True
@@ -95,10 +95,10 @@ class IfdField:
     def parse(cls, stream: IO, tiff_header: TiffHeader) -> 'IfdField':
         field_offset = stream.tell()
 
-        tag_id = reader.read_bytes_strict(stream, 2)
+        tag_id = parser.read_bytes_strict(stream, 2)
         tag_id = endianess.convert(tag_id, byte_order=tiff_header.byte_order)
 
-        type_id = reader.read_bytes_strict(stream, 2)
+        type_id = parser.read_bytes_strict(stream, 2)
         type_id = endianess.convert(type_id, byte_order=tiff_header.byte_order)
 
         if FieldType.is_unknown(type_id):
@@ -106,19 +106,19 @@ class IfdField:
         else:
             type_id = FieldType(type_id)
 
-        count = reader.read_bytes_strict(stream, 4)
+        count = parser.read_bytes_strict(stream, 4)
         count = endianess.convert(count, byte_order=tiff_header.byte_order)
 
         field_size = count * type_id.byte_count
         if field_size <= 4:
             value_offset = field_offset + 8
             stream.seek(4, io.SEEK_CUR) # skip value data
-            field_size = IfdField.FIXED_SIZE # no extra data outsize the field structure
+            field_size = IfdField.FIXED_SIZE # no extra data outside the field structure
         else:
-            value_offset = reader.read_bytes_strict(stream, 4)
+            value_offset = parser.read_bytes_strict(stream, 4)
             value_offset = endianess.convert(value_offset, byte_order=tiff_header.byte_order)
             value_offset += tiff_header.offset
-            field_size = reader.align4(field_size) + IfdField.FIXED_SIZE
+            field_size = parser.align4(field_size) + IfdField.FIXED_SIZE
 
         return IfdField(tag_id=tag_id,
                         count=count,

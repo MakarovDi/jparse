@@ -1,6 +1,6 @@
 from typing import IO, Tuple
 
-from jparse import reader
+from jparse import parser
 from jparse.log import logger
 from jparse.JpegMarker import JpegMarker
 from jparse.JpegSegment import JpegSegment
@@ -50,7 +50,7 @@ class AppSegment(JpegSegment):
         logger.debug(f'[{self.marker.name}] segment loading...')
         self._stream.seek(self.offset + JpegMarker.MARKER_SIZE + JpegMarker.LENGTH_SIZE)
 
-        self._name = parse_app_name(self._stream)
+        self._name = parser.parse_app_name(self._stream)
         logger.debug(f'-> name: {self._name}')
 
         if self._name.upper() == 'JFIF':
@@ -58,7 +58,7 @@ class AppSegment(JpegSegment):
             return
 
         # Exif or custom APP[2-15]
-        byte = reader.read_bytes_strict(self._stream, 1)  # skip one more 0x00 byte ('Exif\0x00\0x00')
+        byte = parser.read_bytes_strict(self._stream, 1)  # skip one more 0x00 byte ('Exif\0x00\0x00')
         if byte[0] != 0x00:
             raise RuntimeError('unexpected format of APP segment')
 
