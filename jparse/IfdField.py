@@ -1,5 +1,4 @@
 import io
-import struct
 from numbers import Number
 from typing import Tuple, IO, Union
 

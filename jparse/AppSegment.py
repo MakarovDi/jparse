@@ -18,21 +18,18 @@ class AppSegment(JpegSegment):
 
     @property
     def name(self) -> str:
-        if not self.is_loaded:
-            # TODO: load only name
-            self.load()
+        # TODO: load only name
+        self.load()
         return self._name
 
     @property
     def tiff_header(self) -> TiffHeader:
-        if not self.is_loaded:
-            self.load()
+        self.load()
         return self._tiff_header
 
     @property
     def ifd(self) -> Tuple[ImageFileDirectory, ...]:
-        if not self.is_loaded:
-            self.load()
+        self.load()
         return self._ifd
 
 
@@ -42,11 +39,12 @@ class AppSegment(JpegSegment):
         self._tiff_header = None
         self._name = None
         self._is_loaded = False
-        self._ifd = None
+        self._ifd = ()
 
 
     def load(self):
         if self.is_loaded: return
+
         self._stream.seek(self.offset)
 
         logger.debug(f'[{self.marker.name}] segment loading...')
@@ -109,6 +107,6 @@ def parse_app_name(stream: IO) -> str:
         if byte[0] == 0x00:
             break
 
-        name = name + byte.decode('ascii')
+        name += byte.decode('ascii')
 
     return name
