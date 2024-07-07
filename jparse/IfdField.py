@@ -159,13 +159,16 @@ def unpack_value(data: bytes,
                  byte_order: ByteOrder) -> Union[Number, chr]:
     assert len(data) == field_type.byte_count, 'invalid dat size'
 
+    # Note: faster than byte_order.value
+    byte_order = '<' if byte_order == ByteOrder.LITTLE_ENDIAN else '>'
+
     if field_type.is_rational:
         from fractions import Fraction
-        numerator = struct.unpack(f'{byte_order.format_chr}{field_type.type_chr}', data[:4])
-        denominator = struct.unpack(f'{byte_order.format_chr}{field_type.type_chr}', data[4:])
+        numerator = struct.unpack(f'{byte_order}{field_type.type_chr}', data[:4])
+        denominator = struct.unpack(f'{byte_order}{field_type.type_chr}', data[4:])
         return Fraction(numerator=numerator[0], denominator=denominator[0])
 
-    value = struct.unpack(f'{byte_order.format_chr}{field_type.type_chr}', data)
+    value = struct.unpack(f'{byte_order}{field_type.type_chr}', data)
     value = value[0]
 
     if field_type == FieldType.ASCII:
