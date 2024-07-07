@@ -39,8 +39,7 @@ class IfdField:
 
     @property
     def value(self) -> ValueType:
-        if not self.is_loaded:
-            self.load()
+        self.load()
         return self._value
 
     @property
@@ -84,8 +83,7 @@ class IfdField:
                          f'value_offset=0x{self.value_offset:08X}')
 
     def load(self):
-        if self.is_loaded:
-            return
+        if self.is_loaded: return
 
         self._stream.seek(self.value_offset)
         data = reader.read_bytes_strict(self._stream, self.count*self.field_type.byte_count)

@@ -41,9 +41,9 @@ class ImageFileDirectory:
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(fields={repr(self.fields)}, ' \
-                                         f'next_ifd_offset={self.next_ifd_offset}, ' \
-                                         f'size={self.size}, ' \
-                                         f'offset={self.offset})'
+               f'next_ifd_offset={self.next_ifd_offset}, ' \
+               f'size={self.size}, ' \
+               f'offset={self.offset})'
 
     @classmethod
     def parse(cls, stream: IO, tiff_header: TiffHeader) -> 'ImageFileDirectory':
