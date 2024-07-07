@@ -1,6 +1,6 @@
 from typing import IO
 
-from jparse import tools
+from jparse import reader
 from jparse import endianess
 from jparse.endianess import ByteOrder
 
@@ -38,7 +38,7 @@ class TiffHeader:
 
         # read byte order
 
-        byte_order = tools.read_bytes_strict(stream, 2)
+        byte_order = reader.read_bytes_strict(stream, 2)
 
         if byte_order[0] == byte_order[1] == 0x49:
             byte_order = ByteOrder.LITTLE_ENDIAN
@@ -49,14 +49,14 @@ class TiffHeader:
 
         # check tiff header signature
 
-        tiff_id = tools.read_bytes_strict(stream, 2)
+        tiff_id = reader.read_bytes_strict(stream, 2)
         tiff_id = endianess.convert(tiff_id, byte_order=byte_order)
         if tiff_id != TiffHeader.ID:
             raise RuntimeError('invalid tiff header format')
 
         # read IFD0 offset
 
-        ifd0_offset = tools.read_bytes_strict(stream, 4)
+        ifd0_offset = reader.read_bytes_strict(stream, 4)
         ifd0_offset = endianess.convert(ifd0_offset, byte_order=byte_order)
 
         return TiffHeader(offset=tiff_header_offset,

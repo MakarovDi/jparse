@@ -1,7 +1,7 @@
 from io import SEEK_CUR
 from typing import IO, List, OrderedDict, NamedTuple
 
-from jparse import tools
+from jparse import reader
 from jparse import endianess
 from jparse.JpegMarker import JpegMarker, SOI, EOI, SOS, APPn
 from jparse.JpegSegment import JpegSegment
@@ -90,7 +90,7 @@ def scan_jpeg_structure(stream: IO, include_eoi: bool) -> List[JpegSegment]:
         if segment_marker == EOI:
             raise RuntimeError('unexpected EOI marker before SOS marker')
 
-        segment_size = tools.read_bytes_strict(stream, JpegMarker.LENGTH_SIZE)
+        segment_size = reader.read_bytes_strict(stream, JpegMarker.LENGTH_SIZE)
         segment_size = endianess.convert_big_endian(segment_size) + JpegMarker.MARKER_SIZE
 
         segment = JpegSegment.create(marker=segment_marker, stream=stream, offset=offset, size=segment_size)
@@ -118,7 +118,7 @@ def scan_jpeg_structure(stream: IO, include_eoi: bool) -> List[JpegSegment]:
 
 
 def check_jpeg_signature(stream: IO):
-    marker = tools.read_bytes_strict(stream, JpegMarker.MARKER_SIZE)
+    marker = reader.read_bytes_strict(stream, JpegMarker.MARKER_SIZE)
     marker = endianess.convert_big_endian(marker)
 
     if marker != SOI.signature:

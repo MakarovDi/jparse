@@ -1,6 +1,7 @@
 from typing import IO, Tuple
 
-from jparse import tools
+from jparse import reader
+from jparse.log import logger
 from jparse.JpegMarker import JpegMarker
 from jparse.JpegSegment import JpegSegment
 from jparse.TiffHeader import TiffHeader
@@ -48,25 +49,25 @@ class AppSegment(JpegSegment):
         if self.is_loaded: return
         self._stream.seek(self.offset)
 
-        tools.logger.debug(f'[{self.marker.name}] segment loading...')
+        logger.debug(f'[{self.marker.name}] segment loading...')
         self._stream.seek(self.offset + JpegMarker.MARKER_SIZE + JpegMarker.LENGTH_SIZE)
 
         self._name = parse_app_name(self._stream)
-        tools.logger.debug(f'-> name: {self._name}')
+        logger.debug(f'-> name: {self._name}')
 
         if self._name.upper() == 'JFIF':
             self._is_loaded = True
             return
 
         # Exif or custom APP[2-15]
-        byte = tools.read_bytes_strict(self._stream, 1)  # skip one more 0x00 byte ('Exif\0x00\0x00')
+        byte = reader.read_bytes_strict(self._stream, 1)  # skip one more 0x00 byte ('Exif\0x00\0x00')
         if byte[0] != 0x00:
             raise RuntimeError('unexpected format of APP segment')
 
         # parse tiff header
 
         self._tiff_header = TiffHeader.parse(self._stream)
-        tools.logger.debug(f'-> {self._tiff_header}')
+        logger.debug(f'-> {self._tiff_header}')
 
         # parse IFD
 
@@ -75,7 +76,7 @@ class AppSegment(JpegSegment):
         ifd = []
         while True:
             self._stream.seek(next_ifd_offset)
-            tools.logger.debug(f'-> IDF #{len(ifd)}, offset=0x{next_ifd_offset:08X}')
+            logger.debug(f'-> IDF #{len(ifd)}, offset=0x{next_ifd_offset:08X}')
 
             ifd_i = ImageFileDirectory.parse(self._stream, tiff_header=self._tiff_header)
             ifd.append(ifd_i)
@@ -103,7 +104,7 @@ def parse_app_name(stream: IO) -> str:
     name = ''
 
     while True:
-        byte = tools.read_bytes_strict(stream, 1)
+        byte = reader.read_bytes_strict(stream, 1)
 
         if byte[0] == 0x00:
             break

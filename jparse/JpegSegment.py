@@ -1,6 +1,6 @@
 from typing import IO
 from jparse.JpegMarker import JpegMarker, APPn
-from jparse import tools
+from jparse.log import logger
 
 
 class JpegSegment:
@@ -51,7 +51,7 @@ class JpegSegment:
 
 
     def log(self):
-        tools.logger.debug(f'0x{self.offset:08X} -> {self.marker.name:5s}: {self.size} bytes')
+        logger.debug(f'0x{self.offset:08X} -> {self.marker.name:5s}: {self.size} bytes')
 
 
     def load(self):
