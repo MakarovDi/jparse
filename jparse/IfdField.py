@@ -4,7 +4,7 @@ from numbers import Number
 from typing import Tuple, IO, Union
 
 from jparse import reader
-from jparse.log import logger
+from jparse.log import logger, logging
 from jparse import endianess
 from jparse.endianess import ByteOrder
 from jparse.TiffHeader import TiffHeader
@@ -73,11 +73,15 @@ class IfdField:
 
 
     def log(self, tabs: int=2):
-        logger.debug('\t'*tabs + f'Field[0x{self.tag_id:04X}]: {repr(self.field_type):>24s}, '
-                                 f'count={self.count:<3d}, '
-                                 f'size={self.size}, '
-                                 f'field_offset=0x{self.offset:08X}, '
-                                 f'value_offset=0x{self.value_offset:08X}')
+        if logger.isEnabledFor(logging.DEBUG):
+            # IFD contain a lot of fields sometimes, so IfdFiled.parse() and IfdFiled.log() are hot.
+            # The check for logging.DEBUG level will prevent formatting and repr overhead.
+            indent = '\t'*tabs
+            logger.debug(f'{indent}Field[0x{self.tag_id:04X}]: {repr(self.field_type):>24s}, '
+                         f'count={self.count:<3d}, '
+                         f'size={self.size:<3d}, '
+                         f'field_offset=0x{self.offset:08X}, '
+                         f'value_offset=0x{self.value_offset:08X}')
 
     def load(self):
         if self.is_loaded:
