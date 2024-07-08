@@ -46,6 +46,9 @@ class JpegMetaParser:
         assert type(item) == str, 'item must be a str: e.g parser["APP0"]'
         return self._segments[item.upper()]
 
+    def __iter__(self):
+        return iter(self._segments.values())
+
     def get_segment(self, marker_name: str) -> Union[AppSegment, None]:
         return self._segments.get(marker_name.upper(), None)
 

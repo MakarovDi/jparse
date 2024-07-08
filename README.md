@@ -47,6 +47,24 @@ Image Width: 4096
 DateTime: 2021:03:29 21:27:04
 ```
 
+### Listing Segments
+
+```python
+from jparse import JpegMetaParser
+
+with open('image.jpg', 'rb') as f:
+    parser = JpegMetaParser(f)
+    
+    for seg in parser:
+        print(seg)
+```
+
+Output:
+```
+APP1 - Exif - offset: 0x00000002, 33288 bytes
+APP0 - JFIF - offset: 0x00036680, 18 bytes
+```
+
 ### Listing IFD's fields
 
 ```python
@@ -54,10 +72,11 @@ from jparse import JpegMetaParser
 
 with open('image.jpg', 'rb') as f:
     parser = JpegMetaParser(f)
-    app1 = parser.app_segments['APP1']
+    
+    app1 = parser['APP1'] # select segment
+    ifd1 = app1.ifd[1] # select IFD
 
-    ifd1 = app1.ifd[1] # select IFD #1
-
+    # pring all tags and values
     for tag_id, field in ifd1.fields.items():
         print(f'TAG 0x{tag_id:04X}: {field.value}')
 ```
@@ -74,9 +93,7 @@ TAG 0x011B: 72
 ```
 
 
-## Logging
-
-### JPEG-file segments
+## Debug Logging
 
 ```python
 import logging
@@ -87,41 +104,7 @@ logging.basicConfig(format='[%(name)s][%(levelname)s]: %(message)s', level=loggi
 
 with open('image.jpg', 'rb') as f:
     parser = JpegMetaParser(f)
-```
-Output:
-```
-[jparse][DEBUG]: 0x00000000 -> SOI  : 2 bytes
-[jparse][DEBUG]: 0x00000002 -> APP1 : 30251 bytes
-[jparse][DEBUG]: 0x0000762D -> APP7 : 47240 bytes
-[jparse][DEBUG]: 0x00012EB5 -> APP8 : 55790 bytes
-[jparse][DEBUG]: 0x000208A3 -> APP9 : 43434 bytes
-[jparse][DEBUG]: 0x0002B24D -> APP10: 43094 bytes
-[jparse][DEBUG]: 0x00035AA3 -> APP0 : 18 bytes
-[jparse][DEBUG]: 0x00035AB5 -> DQT  : 69 bytes
-[jparse][DEBUG]: 0x00035AFA -> DQT  : 69 bytes
-[jparse][DEBUG]: 0x00035B3F -> SOF0 : 19 bytes
-[jparse][DEBUG]: 0x00035B52 -> DHT  : 33 bytes
-[jparse][DEBUG]: 0x00035B73 -> DHT  : 183 bytes
-[jparse][DEBUG]: 0x00035C2A -> DHT  : 33 bytes
-[jparse][DEBUG]: 0x00035C4B -> DHT  : 183 bytes
-[jparse][DEBUG]: 0x00035D02 -> DRI  : 6 bytes
-[jparse][DEBUG]: 0x00035D08 -> SOS  : 14 bytes
-```
-
-
-## IDFs and data fields
-
-
-```python
-import logging
-from jparse import JpegMetaParser
-
-logging.basicConfig(format='[%(name)s][%(levelname)s]: %(message)s', level=logging.DEBUG)
-
-
-with open('image.jpg', 'rb') as f:
-    parser = JpegMetaParser(f)
-    app1 = parser.app_segments['APP1']
+    app1 = parser['APP1']
     app1.load()
 ```
 
@@ -179,7 +162,7 @@ Output:
 This software is licensed under the `BSD-3-Clause` license.  
 See the [LICENSE](LICENSE) file for details.
 
-## References
+## Links
 
 * [Description of Exif file format](https://www.media.mit.edu/pia/Research/deepview/exif.html)
 * [Exif Format v2](https://www.kodak.com/global/plugins/acrobat/en/service/digCam/exifStandard2.pdf)
