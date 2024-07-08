@@ -44,7 +44,7 @@ class JpegSegment:
 
 
     def __str__(self) -> str:
-        return f'{self.marker.name} - offset: 0x{self.offset:08X} - {self.size} bytes'
+        return f'{self.marker.name} - offset: 0x{self.offset:08X}, {self.size} bytes'
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(marker={repr(self.marker)}, offset={self.offset}, size={self.size})'

@@ -69,6 +69,14 @@ class AppSegment(JpegSegment):
         return ifd_next
 
 
+    def __str__(self) -> str:
+        return f'{self.marker.name} - {self.name} - offset: 0x{self.offset:08X}, {self.size} bytes'
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(marker={repr(self.marker)} - {self.name}, offset={self.offset}, size={self.size})'
+
+
+
     def load(self):
         """
         Load segment header without loading the segment content.

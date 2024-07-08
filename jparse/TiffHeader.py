@@ -29,7 +29,7 @@ class TiffHeader:
 
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(byte_order={repr(self.byte_order)}, ifd0_offset={self.ifd0_offset})'
+        return f'{self.__class__.__name__}(byte_order={self.byte_order.name}, ifd0_offset={self.ifd0_offset})'
 
 
     @classmethod

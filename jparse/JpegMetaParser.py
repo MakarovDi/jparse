@@ -1,5 +1,5 @@
 from io import SEEK_CUR
-from typing import IO, List, OrderedDict, NamedTuple
+from typing import IO, List, Union, OrderedDict, NamedTuple
 
 from jparse import parser
 from jparse import endianess
@@ -19,7 +19,7 @@ class TagPath(NamedTuple):
 class JpegMetaParser:
 
     @property
-    def app_segments(self) -> OrderedDict[str, AppSegment]:
+    def app_segments(self) -> OrderedDict[str, Union[AppSegment, JpegSegment]]:
         return self._app_segments
 
     @property
@@ -45,7 +45,7 @@ class JpegMetaParser:
         self._sos = None
         self._eoi = structure[-1] if structure[-1].marker == EOI else None
 
-        self._app_segments = OrderedDict[str, AppSegment]()
+        self._app_segments = OrderedDict()
         for segment in structure:
             if segment.marker == SOS:
                 self._sos = segment

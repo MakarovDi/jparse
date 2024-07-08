@@ -22,7 +22,7 @@ class ImageFileDirectory:
 
     @property
     def field_count(self) -> int:
-        return len(self._fields)
+        return len(self.fields)
 
     @property
     def next_ifd_offset(self) -> int:
@@ -40,7 +40,7 @@ class ImageFileDirectory:
 
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(fields={repr(self.fields)}, ' \
+        return f'{self.__class__.__name__}(fields={self.field_count}, ' \
                f'next_ifd_offset={self.next_ifd_offset}, ' \
                f'size={self.size}, ' \
                f'offset={self.offset})'
