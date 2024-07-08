@@ -7,13 +7,15 @@ from jparse.JpegSegment import JpegSegment
 from jparse.TiffHeader import TiffHeader
 from jparse.ImageFileDirectory import ImageFileDirectory
 
-# TODO: special class for JFIF [APP0] segment
 # TODO: special class for Exif [APP1] segment
 
 class AppSegment(JpegSegment):
 
     @property
     def is_loaded(self) -> bool:
+        """
+        Check if the segment's header already loaded (not the segment's content).
+        """
         return self._is_loaded
 
     @property
@@ -40,6 +42,13 @@ class AppSegment(JpegSegment):
 
 
     def ifd(self, index: int) -> Union[ImageFileDirectory, None]:
+        """
+        Load the segment's IFD by index (lazy, only IFD's header not content).
+        All IFD with in range [0, index-1] will be also loaded and cached.
+        It's not possible to load only one IFD because the offset is unknown.
+        If the IFD was loaded during a previous ifd() call, the cached object will be returned.
+        If None is returned, the IFD with the specified index is not present in the segment.
+        """
         self.load()
 
         if len(self._ifd) > index:
@@ -61,6 +70,10 @@ class AppSegment(JpegSegment):
 
 
     def load(self):
+        """
+        Load segment header without loading the segment content.
+        It will be called automatically when the segment property is accessed.
+        """
         if self.is_loaded: return
 
         self._stream.seek(self.offset)
@@ -72,6 +85,7 @@ class AppSegment(JpegSegment):
         logger.debug(f'-> name: {self._name}')
 
         if self._name.upper() == 'JFIF':
+            # TODO: JFIF [APP0] segment parsing
             self._is_loaded = True
             return
 
@@ -89,6 +103,9 @@ class AppSegment(JpegSegment):
 
 
     def _load_next_ifd(self) -> Union[ImageFileDirectory, None]:
+        """
+        Load next IFD from self._next_ifd_offset and update self._next_ifd_offset
+        """
         assert self.is_loaded
 
         if self._next_ifd_offset is None:
