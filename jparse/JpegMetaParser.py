@@ -19,8 +19,15 @@ class TagPath(NamedTuple):
 class JpegMetaParser:
 
     @property
-    def app_segments(self) -> OrderedDict[str, Union[AppSegment, JpegSegment]]:
-        return self._app_segments
+    def app_segments(self) -> tuple[str, ...]:
+        """
+        Names of APP* segments
+        """
+        return self.segments
+
+    @property
+    def segments(self) -> tuple[str, ...]:
+        return tuple(self._segments.keys())
 
     @property
     def image_data_offset(self) -> int:
@@ -32,6 +39,8 @@ class JpegMetaParser:
             raise RuntimeError('use JpegMetaParser(estimate_image_size=True, ...)')
         return self._eoi.offset - self._sos.offset - self._sos.size
 
+    def get_segment(self, marker_name: str) -> Union[AppSegment, None]:
+        return self._segments.get(marker_name.upper(), None)
 
     def __init__(self, stream: IO, estimate_image_size: bool=False):
         if 'r' not in stream.mode or 'b' not in stream.mode:
@@ -45,20 +54,21 @@ class JpegMetaParser:
         self._sos = None
         self._eoi = structure[-1] if structure[-1].marker == EOI else None
 
-        self._app_segments = OrderedDict()
+        self._segments = OrderedDict[str, AppSegment]()
         for segment in structure:
             if segment.marker == SOS:
                 self._sos = segment
             elif APPn.check_mask(segment.marker.signature):
-                self._app_segments[segment.marker.name.upper()] = segment
+                assert isinstance(segment, AppSegment)
+                self._segments[segment.marker.name.upper()] = segment
 
 
     def get_tag_value(self, tag_path: TagPath) -> ValueType:
-        app_segment = self.app_segments.get(tag_path.app_name.upper())
-        if app_segment is None:
+        segment = self._segments.get(tag_path.app_name.upper())
+        if segment is None:
             raise LookupError(f'APP segment "{tag_path.app_name.upper()}" is not found')
 
-        ifd: ImageFileDirectory = app_segment.ifd(tag_path.ifd_number)
+        ifd: ImageFileDirectory = segment.ifd(tag_path.ifd_number)
         if ifd is None:
             raise IndexError(f'IFD{tag_path.ifd_number} is not found')
 
