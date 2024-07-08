@@ -7,7 +7,7 @@ JPEG structure and Exif metadata parsing library.
 
 ## JPEG File Structure
 
-<img src='docs/jpeg_format.png' width='600'>
+<img src='docs/jpeg_format.png' width='700'>
 
 ## Requirements
 
@@ -64,6 +64,28 @@ Output:
 APP1 - Exif - offset: 0x00000002, 33288 bytes
 APP0 - JFIF - offset: 0x00036680, 18 bytes
 ```
+
+### Listing IFDs
+
+```python
+from jparse import JpegMetaParser
+
+with open('image.jpg', 'rb') as f:
+    parser = JpegMetaParser(f)
+
+    app1 = parser['APP1']
+    print(app1)
+
+    for idf in app1:
+        print(idf)
+```
+Output:
+```
+APP1 - Exif - offset: 0x00000002, 3388 bytes
+ImageFileDirectory(fields=12, next_ifd_offset=714, size=246, offset=20)
+ImageFileDirectory(fields=3, next_ifd_offset=0, size=42, offset=726)
+```
+
 
 ### Listing IFD's fields
 

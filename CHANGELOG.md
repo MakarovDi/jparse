@@ -5,6 +5,8 @@
 * `[JpegMetaParser]` indexing support for segments: e.g. `parser['APP1']`.
 * `[JpegMetaParser]` iterator support: `for segment in parser: ...`.
 * `[JpegMetaParser]` support for `len()` function: `len(parser)` -> number of segments.
+* `[AppSegment]` indexing support: e.g. `ifd = segment[2]`.
+* `[AppSegment]` iterator support: `for ifd in segment: ...`.
 * `BSD-3-Clause` license added.
 
 ##### Changed

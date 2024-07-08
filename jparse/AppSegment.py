@@ -28,6 +28,13 @@ class AppSegment(JpegSegment):
         self.load()
         return self._tiff_header
 
+    def __getitem__(self, item: int) -> Union[ImageFileDirectory, None]:
+        assert type(item) == int, 'index must be int'
+        return self.ifd(index=item)
+
+    def __iter__(self):
+        return AppSegmentIterator(self)
+
 
     def __init__(self, marker: JpegMarker, stream: IO, offset: int, size: int):
         super().__init__(marker=marker, stream=stream, offset=offset, size=size)
@@ -74,7 +81,6 @@ class AppSegment(JpegSegment):
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(marker={repr(self.marker)} - {self.name}, offset={self.offset}, size={self.size})'
-
 
 
     def load(self):
@@ -144,3 +150,28 @@ class AppSegment(JpegSegment):
                 self._next_ifd_offset = ifd_i.offset + ifd_i.size
 
         return ifd_i
+
+
+class AppSegmentIterator:
+    """
+    Iterator the AppSegment to enable for-support:
+
+        for idf in app_segment:
+            print(idf)
+
+    """
+
+    def __init__(self, segment: AppSegment):
+        self._segment = segment
+        self._idx = 0
+
+    def __next__(self) -> ImageFileDirectory:
+        idf = self._segment.ifd(self._idx)
+
+        if idf is None:
+            # reached last IDF inside the segment
+            raise StopIteration()
+
+        self._idx += 1
+
+        return idf
