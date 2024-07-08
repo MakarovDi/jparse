@@ -181,8 +181,8 @@ See the [LICENSE](LICENSE) file for details.
 
 ## References
 
-* [Exif Format v2](https://www.exif.org/Exif2-2.PDF)
-* [TIFF File Format Specifications](https://docs.fileformat.com/image/tiff/)
+* [Description of Exif file format](https://www.media.mit.edu/pia/Research/deepview/exif.html)
+* [Exif Format v2](https://www.kodak.com/global/plugins/acrobat/en/service/digCam/exifStandard2.pdf)
 * [ExifLibrary for .NET](https://www.codeproject.com/Articles/43665/ExifLibrary-for-NET)
 * [The Metadata in JPEG files](https://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_JPEG_files)
 * [Manufacturer-specific Tags](https://exiftool.org/TagNames/JPEG.html)
