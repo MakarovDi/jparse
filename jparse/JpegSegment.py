@@ -19,11 +19,17 @@ class JpegSegment:
 
     @property
     def is_loaded(self) -> bool:
+        """
+        Check if the segment's header already loaded (not the segment's content).
+        """
         return False
 
 
     @staticmethod
     def create(marker: JpegMarker, stream: IO, offset: int, size: int) -> 'JpegSegment':
+        """
+        Segment creationg factory method.
+        """
         if APPn.check_mask(marker.signature):
             from jparse.AppSegment import AppSegment
             SegmentType = AppSegment
@@ -55,4 +61,8 @@ class JpegSegment:
 
 
     def load(self):
+        """
+        Load segment header without loading the segment content.
+        It will be called automatically when the segment property is accessed.
+        """
         raise NotImplementedError()
