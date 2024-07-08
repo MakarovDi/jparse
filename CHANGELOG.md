@@ -2,6 +2,8 @@
 
 ##### New
 * maximally lazy `AppSegment` -> `x3` speed up.
+* `[JpegMetaParser]` indexing support for segments: e.g. `parser['APP1']`.
+* `[JpegMetaParser]` support for `len()` function: `len(parser)` -> number of segments.
 * `BSD-3-Clause` license added.
 
 ##### Changed

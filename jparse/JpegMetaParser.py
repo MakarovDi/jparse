@@ -39,8 +39,16 @@ class JpegMetaParser:
             raise RuntimeError('use JpegMetaParser(estimate_image_size=True, ...)')
         return self._eoi.offset - self._sos.offset - self._sos.size
 
+    def __len__(self) -> int:
+        return len(self.segments)
+
+    def __getitem__(self, item: str) ->  AppSegment:
+        assert type(item) == str, 'item must be a str: e.g parser["APP0"]'
+        return self._segments[item.upper()]
+
     def get_segment(self, marker_name: str) -> Union[AppSegment, None]:
         return self._segments.get(marker_name.upper(), None)
+
 
     def __init__(self, stream: IO, estimate_image_size: bool=False):
         if 'r' not in stream.mode or 'b' not in stream.mode:
