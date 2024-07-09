@@ -8,7 +8,7 @@ from jparse.JpegSegment import JpegSegment
 from jparse.AppSegment import AppSegment
 from jparse.ExifSegment import ExifSegment
 from jparse.IfdField import ValueType
-from jparse.ImageFileDirectory import ImageFileDirectory
+from jparse.IFD import IFD
 
 
 class TagPath(NamedTuple):
@@ -82,7 +82,7 @@ class JpegMetaParser:
         if segment is None:
             raise LookupError(f'APP segment "{tag_path.app_name.upper()}" is not found')
 
-        ifd: ImageFileDirectory = segment.ifd(tag_path.ifd_number)
+        ifd: IFD = segment.ifd(tag_path.ifd_number)
         if ifd is None:
             raise IndexError(f'IFD{tag_path.ifd_number} is not found')
 

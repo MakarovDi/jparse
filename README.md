@@ -76,8 +76,8 @@ with open('image.jpg', 'rb') as f:
     app1 = parser['APP1']
     print(app1)
 
-    for idf in app1:
-        print(idf)
+    for ifd in app1:
+        print(ifd)
 ```
 Output:
 ```

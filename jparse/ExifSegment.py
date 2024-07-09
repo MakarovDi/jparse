@@ -7,7 +7,7 @@ from jparse.log import logger
 from jparse.JpegMarker import JpegMarker
 from jparse.AppSegment import AppSegment
 from jparse.TiffHeader import TiffHeader
-from jparse.ImageFileDirectory import ImageFileDirectory
+from jparse.IFD import IFD
 
 
 class ExifSegment(AppSegment):
@@ -21,7 +21,7 @@ class ExifSegment(AppSegment):
         return self.__tiff_header
 
 
-    def __getitem__(self, item: int) -> Union[ImageFileDirectory, None]:
+    def __getitem__(self, item: int) -> Union[IFD, None]:
         assert type(item) == int, 'index must be int'
         return self.ifd(index=item)
 
@@ -29,7 +29,7 @@ class ExifSegment(AppSegment):
         return ExifIterator(self)
 
 
-    def ifd(self, index: int) -> Union[ImageFileDirectory, None]:
+    def ifd(self, index: int) -> Union[IFD, None]:
         """
         Load the segment's IFD by index (lazy, only IFD's header not content).
         If None is returned, the IFD with the specified index is not present in the segment.
@@ -84,7 +84,7 @@ class ExifIterator:
         self._segment = segment
         self._idx = 0
 
-    def __next__(self) -> ImageFileDirectory:
+    def __next__(self) -> IFD:
         idf = self._segment.ifd(self._idx)
 
         if idf is None:

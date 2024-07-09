@@ -6,18 +6,21 @@ from jparse.TiffHeader import TiffHeader
 from jparse.IfdField import IfdField
 
 
-class ImageFileDirectory:
+class IFD:
+    """
+    IFD - Image File Directory.
+    """
 
     @property
     def offset(self) -> int:
         """
         IFD offset from the start of the file.
         """
-        return self._offset
+        return self.__offset
 
     @property
     def size(self) -> int:
-        return self._size
+        return self.__size
 
     @property
     def fields(self) -> OrderedDict[int, IfdField]:
@@ -32,27 +35,34 @@ class ImageFileDirectory:
         """
         Next IFD offset relative to TiffHeader of the segment.
         """
-        return self._next_ifd_offset
+        return self.__next_ifd_offset
+
+    @property
+    def index(self) -> int:
+        return self.__index
 
 
     def __init__(self, fields: OrderedDict[int, IfdField],
+                       index : int,
                        next_ifd_offset: int,
                        size  : int,
                        offset: int=0):
         self._fields = fields
-        self._next_ifd_offset = next_ifd_offset
-        self._offset = offset
-        self._size = size
+        self.__next_ifd_offset = next_ifd_offset
+        self.__offset = offset
+        self.__size = size
+        self.__index = index
 
 
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}(fields={self.field_count}, ' \
-               f'next_ifd_offset={self.next_ifd_offset}, ' \
-               f'size={self.size}, ' \
-               f'offset={self.offset})'
+        return (f'{self.__class__.__name__}(index={self.index}, '
+                f'fields={self.field_count}, '
+                f'next_ifd_offset={self.next_ifd_offset}, '
+                f'size={self.size}, '
+                f'offset={self.offset})')
 
     @classmethod
-    def parse(cls, stream: IO, tiff_header: TiffHeader) -> 'ImageFileDirectory':
+    def parse(cls, stream: IO, tiff_header: TiffHeader, index: int) -> 'IFD':
         ifd_offset = stream.tell()
 
         field_count = parser.read_bytes_strict(stream, count=2)
@@ -70,7 +80,8 @@ class ImageFileDirectory:
         next_ifd_offset = parser.read_bytes_strict(stream, 4)
         next_ifd_offset = endianess.convert(next_ifd_offset, byte_order=tiff_header.byte_order)
 
-        return ImageFileDirectory(offset=ifd_offset,
-                                  fields=fields,
-                                  next_ifd_offset=next_ifd_offset,
-                                  size=size)
+        return IFD(offset=ifd_offset,
+                   index=index,
+                   fields=fields,
+                   next_ifd_offset=next_ifd_offset,
+                   size=size)
