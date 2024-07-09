@@ -31,8 +31,8 @@ class JpegSegment:
         Segment creationg factory method.
         """
         if APPn.check_mask(marker.signature):
-            from jparse.AppSegment import AppSegment
-            SegmentType = AppSegment
+            from jparse.GenericAppSegment import GenericAppSegment
+            SegmentType = GenericAppSegment
         else:
             SegmentType = JpegSegment
 

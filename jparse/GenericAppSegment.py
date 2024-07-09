@@ -9,7 +9,12 @@ from jparse.ImageFileDirectory import ImageFileDirectory
 
 # TODO: special class for Exif [APP1] segment
 
-class AppSegment(JpegSegment):
+class GenericAppSegment(JpegSegment):
+    """
+    Lazy generic parser for unknown APPx/Exif segment.
+    It tries to load IFDs organized as a linked list or sequential IFDs.
+    Might fail to read IFD if segment contains data except IFDs (e.g. APP1 contains image).
+    """
 
     @property
     def is_loaded(self) -> bool:
@@ -99,9 +104,12 @@ class AppSegment(JpegSegment):
         logger.debug(f'-> name: {self._name}')
 
         if self._name.upper() == 'JFIF':
-            # TODO: JFIF [APP0] segment parsing
+            # do nothing for JFIF - image data
             self._is_loaded = True
             return
+
+        if self._name.upper() != 'EXIF':
+
 
         # Exif or custom APP[2-15]
         byte = parser.read_bytes_strict(self._stream, 1)  # skip one more 0x00 byte ('Exif\0x00\0x00')
@@ -129,20 +137,22 @@ class AppSegment(JpegSegment):
         self._stream.seek(self._next_ifd_offset)
         logger.debug(f'-> IDF #{len(self._ifd)}, offset=0x{self._next_ifd_offset:08X}')
 
-        # parse IFD header and all fields (without filed value loading)
-        # note: IFD is not fully lazy because the IFD size must be known for the bad case (see below)
+        # parse IFD header (without filed value loading)
         ifd_i = ImageFileDirectory.parse(self._stream, tiff_header=self._tiff_header)
 
         # update offset for the next IFD
         if ifd_i.next_ifd_offset > 0:
-            # Good case: next_ifd_offset provided
+            # Good case - IFDs organized as a linked list:
+            # Link to the next IFD provided in ifd_i.next_ifd_offset
             self._next_ifd_offset = self._tiff_header.offset + ifd_i.next_ifd_offset
         else:
-            # Bad case: some cameras put IFDs one by one with next_ifd_offset=0.
-            #           In this case, an IFD object can't be lazy and must load all fields
-            #           to estimate IFD size and calculate offset to the next IFD.
+            # Bad case - sequential IFDs with next_ifd_offset=0:
+            # Some cameras put IFDs one by one, sequentially.
+            # In this case, an IFD object can't be lazy and must load all fields
+            # to estimate IFD size to estimate offset for the next IFD.
             if ifd_i.offset + ifd_i.size >= self.offset + self.size:
                 # the end of the segment is reached
+                # TODO: note: this check is not 100% guarantee, e.g. APP1
                 if ifd_i.offset + ifd_i.size > self.offset + self.size:
                     raise RuntimeError('smth wrong: IFD size is out of a segment size')
                 self._next_ifd_offset = None
@@ -161,7 +171,7 @@ class AppSegmentIterator:
 
     """
 
-    def __init__(self, segment: AppSegment):
+    def __init__(self, segment: GenericAppSegment):
         self._segment = segment
         self._idx = 0
 
