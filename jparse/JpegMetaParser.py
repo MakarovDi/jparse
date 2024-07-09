@@ -3,6 +3,7 @@ from typing import IO, List, Union, OrderedDict, NamedTuple
 
 from jparse import parser
 from jparse import endianess
+from jparse.log import logger
 from jparse.JpegMarker import JpegMarker, SOI, EOI, SOS, APPn
 from jparse.JpegSegment import JpegSegment
 from jparse.AppSegment import AppSegment
@@ -77,18 +78,21 @@ class JpegMetaParser:
                 self._segments[segment.marker.name.upper()] = segment
 
 
-    def get_tag_value(self, tag_path: TagPath) -> ValueType:
+    def get_tag_value(self, tag_path: TagPath, default=None) -> Union[ValueType, None]:
         segment = self._segments.get(tag_path.app_name.upper())
         if segment is None:
-            raise LookupError(f'APP segment "{tag_path.app_name.upper()}" is not found')
+            logger.debug(f'[get_tag_value] segment "{tag_path.app_name.upper()}" is not found')
+            return default
 
         ifd: IFD = segment.ifd(tag_path.ifd_number)
         if ifd is None:
-            raise IndexError(f'IFD{tag_path.ifd_number} is not found')
+            logger.debug(f'[get_tag_value] IFD{tag_path.ifd_number} is not found in {tag_path.app_name.upper()}')
+            return default
 
         field = ifd.fields.get(tag_path.tag_id)
         if field is None:
-            raise LookupError(f'tag 0x{tag_path.tag_id:04X} is not found in IFD #{tag_path.ifd_number}')
+            logger.debug(f'[get_tag_value] tag 0x{tag_path.tag_id:04X} is not found in IFD #{tag_path.ifd_number}')
+            return default
 
         return field.value
 
