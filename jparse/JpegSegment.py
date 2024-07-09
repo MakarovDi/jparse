@@ -10,6 +10,10 @@ class JpegSegment:
         return self._marker
 
     @property
+    def name(self) -> str:
+        return self.marker.name
+
+    @property
     def offset(self) -> int:
         """
         The segment offset from the file start.
@@ -34,15 +38,15 @@ class JpegSegment:
         Segment creation factory method.
         """
         if APPn.check_mask(marker.signature):
-            from jparse.GenericAppSegment import GenericAppSegment
-            SegmentType = GenericAppSegment
+            from jparse.AppSegment import AppSegment
+            Segment = AppSegment
         else:
-            SegmentType = JpegSegment
+            Segment = JpegSegment
 
-        return SegmentType(marker=marker,
-                           stream=stream,
-                           offset=offset,
-                           size=size)
+        return Segment(marker=marker,
+                       stream=stream,
+                       offset=offset,
+                       size=size)
 
 
     def __init__(self, marker: JpegMarker, stream: IO, offset: int, size: int):
@@ -65,7 +69,7 @@ class JpegSegment:
 
     def load(self):
         """
-        Load segment header without loading the segment content.
+        Load segment header without content.
         It will be called automatically when the segment property is accessed.
         """
-        raise NotImplementedError()
+        pass

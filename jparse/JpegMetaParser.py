@@ -5,7 +5,7 @@ from jparse import parser
 from jparse import endianess
 from jparse.JpegMarker import JpegMarker, SOI, EOI, SOS, APPn
 from jparse.JpegSegment import JpegSegment
-from jparse.GenericAppSegment import GenericAppSegment
+from jparse.AppSegment import AppSegment
 from jparse.IfdField import ValueType
 from jparse.ImageFileDirectory import ImageFileDirectory
 
@@ -42,14 +42,14 @@ class JpegMetaParser:
     def __len__(self) -> int:
         return len(self.segments)
 
-    def __getitem__(self, item: str) ->  GenericAppSegment:
+    def __getitem__(self, item: str) ->  AppSegment:
         assert type(item) == str, 'item must be a str: e.g parser["APP0"]'
         return self._segments[item.upper()]
 
     def __iter__(self):
         return iter(self._segments.values())
 
-    def get_segment(self, marker_name: str) -> Union[GenericAppSegment, None]:
+    def get_segment(self, marker_name: str) -> Union[AppSegment, None]:
         return self._segments.get(marker_name.upper(), None)
 
 
@@ -65,12 +65,12 @@ class JpegMetaParser:
         self._sos = None
         self._eoi = structure[-1] if structure[-1].marker == EOI else None
 
-        self._segments = OrderedDict[str, GenericAppSegment]()
+        self._segments = OrderedDict[str, AppSegment]()
         for segment in structure:
             if segment.marker == SOS:
                 self._sos = segment
             elif APPn.check_mask(segment.marker.signature):
-                assert isinstance(segment, GenericAppSegment)
+                assert isinstance(segment, AppSegment)
                 self._segments[segment.marker.name.upper()] = segment
 
 
