@@ -10,6 +10,9 @@ class ImageFileDirectory:
 
     @property
     def offset(self) -> int:
+        """
+        IFD offset from the start of the file.
+        """
         return self._offset
 
     @property
@@ -26,6 +29,9 @@ class ImageFileDirectory:
 
     @property
     def next_ifd_offset(self) -> int:
+        """
+        Next IFD offset relative to TiffHeader of the segment.
+        """
         return self._next_ifd_offset
 
 

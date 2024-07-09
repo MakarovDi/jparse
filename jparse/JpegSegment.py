@@ -11,6 +11,9 @@ class JpegSegment:
 
     @property
     def offset(self) -> int:
+        """
+        The segment offset from the file start.
+        """
         return self._offset
 
     @property
@@ -28,7 +31,7 @@ class JpegSegment:
     @staticmethod
     def create(marker: JpegMarker, stream: IO, offset: int, size: int) -> 'JpegSegment':
         """
-        Segment creationg factory method.
+        Segment creation factory method.
         """
         if APPn.check_mask(marker.signature):
             from jparse.GenericAppSegment import GenericAppSegment
