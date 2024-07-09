@@ -1,5 +1,5 @@
 from typing import IO
-from jparse.JpegMarker import JpegMarker, APPn, APP0, APP1
+from jparse.JpegMarker import JpegMarker, APPn, APP0, APP1, APP2
 from jparse.log import logger
 
 
@@ -37,8 +37,9 @@ class JpegSegment:
         """
         Segment creation factory method.
         """
-        if marker == APP0:
-            # JFIF segment contains no meta, only image data
+        if marker in [APP0, APP2]:
+            # APP0 - JFIF segment contains no meta, only image data
+            # APP2 - Extended Exif (FlashPix)
             from jparse.AppSegment import AppSegment as Segment
         elif marker == APP1:
             # standard Exif segment - Exif Attribute Information

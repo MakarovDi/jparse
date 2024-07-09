@@ -118,6 +118,7 @@ APPn = JpegMarker(signature=0xFFEF, name='APP', is_mask=True, info='Application-
 
 APP0 = JpegMarker(signature=0xFFE0, name='APP0', is_mask=False, info='JFIF Segment')
 APP1 = JpegMarker(signature=0xFFE1, name='APP1', is_mask=False, info='Exif Attribute Information')
+APP2 = JpegMarker(signature=0xFFE2, name='APP2', is_mask=False, info='Exif extended data')
 
 
 SIGNATURE_TO_MARKER_MAPPING = {
@@ -131,4 +132,5 @@ SIGNATURE_TO_MARKER_MAPPING = {
     SOS.signature : SOS,
     APP0.signature: APP0,
     APP1.signature: APP1,
+    APP2.signature: APP2,
 }
