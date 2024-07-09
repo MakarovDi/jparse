@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from io import SEEK_CUR
 from typing import IO, OrderedDict, Union
+from collections.abc import Iterable, Iterator
 
 from jparse import parser
 from jparse import endianess
@@ -32,10 +35,23 @@ class IFD:
 
     @property
     def index(self) -> int:
+        """
+        Index of the IFD
+        """
         return self.__index
 
     def __len__(self) -> int:
         return self.field_count
+
+    def __getitem__(self, tag: int) -> IfdField:
+        assert type(tag) == int
+        field = self.get_field(tag=tag)
+        if field is None:
+            raise KeyError(tag)
+        return field
+
+    def __iter__(self) -> IfdIterator:
+        return IfdIterator(ifd=self)
 
 
     def __init__(self, stream: IO,
@@ -55,6 +71,7 @@ class IFD:
         # lazy field loading and caching
         self.__fields = OrderedDict[int, IfdField]()
         self.__next_filed_offset = self.__offset + 2 # sizeof(field_count) = 2
+
         # the size will be updated with each loaded field
         # to get full IFD size all fields must be loaded
         self.__size = 2 + 4  # sizeof(field_count) + sizeof(next_ifd_offset)
@@ -77,21 +94,13 @@ class IFD:
         return self.__size
 
 
-    def get_field(self, tag: int, default=None) -> Union[IfdField, None]:
-        # check in cache
-        ifd_filed = self.__fields.get(tag, None)
-        if ifd_filed is not None:
-            return ifd_filed
-
-        # try to load more fields
-        while True:
-            ifd_filed = self._load_next_filed()
-            if ifd_filed is None:
-                # no more fields to load
-                return default
-
-            if ifd_filed.tag_id == tag:
-                return ifd_filed
+    def get_field(self, tag: Union[int, None]=None, index: Union[int, None]=None) -> Union[IfdField, None]:
+        if tag is not None:
+            assert index is None, 'only tag or index can be used at the same time'
+            return self._get_field_by_tag(tag=tag)
+        else:
+            assert tag is None, 'only tag or index can be used at the same time'
+            return self._get_field_by_index(index=index)
 
 
     @classmethod
@@ -115,6 +124,38 @@ class IFD:
                    next_ifd_offset=next_ifd_offset)
 
 
+    def _get_field_by_tag(self, tag: int) -> Union[IfdField, None]:
+        # check in cache
+        ifd_filed = self.__fields.get(tag, None)
+        if ifd_filed is not None:
+            return ifd_filed
+
+        # try to load more fields
+        while True:
+            ifd_filed = self._load_next_filed()
+            if ifd_filed is None:
+                # no more fields to load
+                return None
+
+            if ifd_filed.tag_id == tag:
+                return ifd_filed
+
+    def _get_field_by_index(self, index: int) -> Union[IfdField, None]:
+        if len(self.__fields) > index:
+            field = iterate_to_index(self.__fields.values(), index=index)
+            return field
+
+        index -= len(self.__fields) - 1
+        field = None
+        while index > 0:
+            field = self._load_next_filed()
+            if field is None:
+                return None
+            index -= 1
+
+        return field
+
+
     def _load_next_filed(self) -> Union[IfdField, None]:
         if len(self.__fields) == self.__field_count:
             # all fields already loaded
@@ -130,3 +171,31 @@ class IFD:
         self.__next_filed_offset += 12 # sizeof(ifd_filed_header)
 
         return ifd_field
+
+
+class IfdIterator(Iterator):
+
+    def __init__(self, ifd: IFD):
+        self._ifd = ifd
+        self._index = 0
+
+    def __next__(self) -> IfdField:
+        if self._index == self._ifd.field_count:
+            raise StopIteration()
+
+        field = self._ifd.get_field(index=self._index)
+        self._index += 1
+
+        return field
+
+
+def iterate_to_index(sequence: Iterable, index: int):
+    """
+    Scroll iterable sequence to specified index.
+    """
+    iterator = iter(sequence)
+    value = next(iterator)
+    while index > 1:
+        index -= 1
+        value = next(iterator)
+    return value

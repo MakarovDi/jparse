@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import IO, Union
+from collections.abc import Iterator
 
 from jparse import parser
 from jparse.log import logger
@@ -20,10 +21,12 @@ class ExifSegment(AppSegment):
         self.load()
         return self.__tiff_header
 
-
-    def __getitem__(self, item: int) -> Union[IFD, None]:
+    def __getitem__(self, item: int) -> IFD:
         assert type(item) == int, 'index must be int'
-        return self.ifd(index=item)
+        ifd = self.ifd(index=item)
+        if ifd is None:
+            raise KeyError(item)
+        return ifd
 
     def __iter__(self) -> ExifIterator:
         return ExifIterator(self)
@@ -68,7 +71,7 @@ class ExifSegment(AppSegment):
         self._is_loaded = True
 
 
-class ExifIterator:
+class ExifIterator(Iterator):
     """
     Iterator for ExifSegment to enable for-support:
 

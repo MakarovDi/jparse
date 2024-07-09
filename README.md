@@ -97,11 +97,11 @@ with open('image.jpg', 'rb') as f:
     parser = JpegMetaParser(f)
     
     app1 = parser['APP1'] # select segment
-    ifd1 = app1.ifd[1] # select IFD
+    ifd1 = app1[1] # select IFD
 
-    # pring all tags and values
-    for tag_id, field in ifd1.fields.items():
-        print(f'TAG 0x{tag_id:04X}: {field.value}')
+    # print all tags and values
+    for field in ifd1:
+        print(f'TAG 0x{field.tag_id:04X}: {field.value}')
 ```
 
 Output:

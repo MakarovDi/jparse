@@ -7,7 +7,9 @@
 * `[JpegMetaParser]` support for `len()` function: `len(parser)` -> number of segments.
 * `[AppSegment]` indexing support: e.g. `ifd = segment[2]`.
 * `[AppSegment]` iterator support: `for ifd in segment: ...`.
+* `[IFD]` indexing support for IFD: e.g. `ifd[0x101]`.
 * `[IFD]` support for `len()` function: `len(ifd)` -> number of IFD's fields.
+* `[IFD]` iterator support: `for field in ifd: ...`.
 * `BSD-3-Clause` license added.
 
 ##### Changed
@@ -16,6 +18,7 @@
 * `Segments` and `IFDs` are maximally lazy. 
 
 ##### Fixed
+* skip `APP2` parsing because it doesn't contain any `IFDs` usually.
 
 
 # v0.1.1 - 29.08.2021
