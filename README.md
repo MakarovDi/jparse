@@ -18,7 +18,7 @@ JPEG structure and Exif metadata parsing library.
 ## Install
 
 ```
-pip install "jparse @ git+https://github.com/MakarovDi/jparse.git@master"
+pip install "jparse @ git+https://github.com/makarovdi/jparse.git@master"
 ```
 
 ## Examples
@@ -188,6 +188,11 @@ See the [LICENSE](LICENSE) file for details.
 
 * [Description of Exif file format](https://www.media.mit.edu/pia/Research/deepview/exif.html)
 * [Exif Format v2](https://www.kodak.com/global/plugins/acrobat/en/service/digCam/exifStandard2.pdf)
+* [Exif Overview](https://www.cipa.jp/std/documents/e/Exif3.0-Overview_E.pdf)
 * [ExifLibrary for .NET](https://www.codeproject.com/Articles/43665/ExifLibrary-for-NET)
 * [The Metadata in JPEG files](https://dev.exiv2.org/projects/exiv2/wiki/The_Metadata_in_JPEG_files)
 * [Manufacturer-specific Tags](https://exiftool.org/TagNames/JPEG.html)
+
+## TODO
+
+Check the plan for new features [here](TODO.md).
