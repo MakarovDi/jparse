@@ -1,4 +1,5 @@
-from typing import IO, OrderedDict
+from io import SEEK_CUR
+from typing import IO, OrderedDict, Union
 
 from jparse import parser
 from jparse import endianess
@@ -19,16 +20,8 @@ class IFD:
         return self.__offset
 
     @property
-    def size(self) -> int:
-        return self.__size
-
-    @property
-    def fields(self) -> OrderedDict[int, IfdField]:
-        return self._fields
-
-    @property
     def field_count(self) -> int:
-        return len(self.fields)
+        return self.__field_count
 
     @property
     def next_ifd_offset(self) -> int:
@@ -41,25 +34,65 @@ class IFD:
     def index(self) -> int:
         return self.__index
 
+    def __len__(self) -> int:
+        return self.field_count
 
-    def __init__(self, fields: OrderedDict[int, IfdField],
+
+    def __init__(self, stream: IO,
+                       tiff_header: TiffHeader,
                        index : int,
                        next_ifd_offset: int,
-                       size  : int,
-                       offset: int=0):
-        self._fields = fields
+                       filed_count: int,
+                       offset: int):
+        self._stream = stream
+        self._tiff_header = tiff_header
+
         self.__next_ifd_offset = next_ifd_offset
         self.__offset = offset
-        self.__size = size
         self.__index = index
+        self.__field_count = filed_count
+
+        # lazy field loading and caching
+        self.__fields = OrderedDict[int, IfdField]()
+        self.__next_filed_offset = self.__offset + 2 # sizeof(field_count) = 2
+        # the size will be updated with each loaded field
+        # to get full IFD size all fields must be loaded
+        self.__size = 2 + 4  # sizeof(field_count) + sizeof(next_ifd_offset)
 
 
     def __repr__(self) -> str:
         return (f'{self.__class__.__name__}(index={self.index}, '
                 f'fields={self.field_count}, '
                 f'next_ifd_offset={self.next_ifd_offset}, '
-                f'size={self.size}, '
                 f'offset={self.offset})')
+
+    def size(self) -> int:
+        """
+        Estimate IFD size. All fields will be loaded to do so.
+        """
+        # load all fields to estimate the full size of IFD
+        while len(self.__fields) != self.__field_count:
+            self._load_next_filed()
+
+        return self.__size
+
+
+    def get_field(self, tag: int, default=None) -> Union[IfdField, None]:
+        # check in cache
+        ifd_filed = self.__fields.get(tag, None)
+        if ifd_filed is not None:
+            return ifd_filed
+
+        # try to load more fields
+        while True:
+            ifd_filed = self._load_next_filed()
+            if ifd_filed is None:
+                # no more fields to load
+                return default
+
+            if ifd_filed.tag_id == tag:
+                return ifd_filed
+
 
     @classmethod
     def parse(cls, stream: IO, tiff_header: TiffHeader, index: int) -> 'IFD':
@@ -68,20 +101,32 @@ class IFD:
         field_count = parser.read_bytes_strict(stream, count=2)
         field_count = endianess.convert(field_count, byte_order=tiff_header.byte_order)
 
-        fields = OrderedDict[int, IfdField]()
-        size = 2 + 4 # sizeof(field_count) + sizeof(next_ifd_offset)
-        for i in range(field_count):
-            ifd_field = IfdField.parse(stream, tiff_header=tiff_header)
-            ifd_field.log()
-
-            fields[ifd_field.tag_id] = ifd_field
-            size += ifd_field.size
+        # skip field headers, it will be loaded on request (lazy loading)
+        stream.seek(field_count*12, SEEK_CUR)
 
         next_ifd_offset = parser.read_bytes_strict(stream, 4)
         next_ifd_offset = endianess.convert(next_ifd_offset, byte_order=tiff_header.byte_order)
 
-        return IFD(offset=ifd_offset,
+        return IFD(stream=stream,
+                   tiff_header=tiff_header,
+                   offset=ifd_offset,
                    index=index,
-                   fields=fields,
-                   next_ifd_offset=next_ifd_offset,
-                   size=size)
+                   filed_count=field_count,
+                   next_ifd_offset=next_ifd_offset)
+
+
+    def _load_next_filed(self) -> Union[IfdField, None]:
+        if len(self.__fields) == self.__field_count:
+            # all fields already loaded
+            return None
+
+        self._stream.seek(self.__next_filed_offset)
+
+        ifd_field = IfdField.parse(self._stream, tiff_header=self._tiff_header)
+        ifd_field.log()
+
+        self.__size += ifd_field.size
+        self.__fields[ifd_field.tag_id] = ifd_field
+        self.__next_filed_offset += 12 # sizeof(ifd_filed_header)
+
+        return ifd_field

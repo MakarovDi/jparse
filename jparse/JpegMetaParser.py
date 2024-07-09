@@ -89,7 +89,7 @@ class JpegMetaParser:
             logger.debug(f'[get_tag_value] IFD{tag_path.ifd_number} is not found in {tag_path.app_name.upper()}')
             return default
 
-        field = ifd.fields.get(tag_path.tag_id)
+        field = ifd.get_field(tag_path.tag_id)
         if field is None:
             logger.debug(f'[get_tag_value] tag 0x{tag_path.tag_id:04X} is not found in IFD #{tag_path.ifd_number}')
             return default
