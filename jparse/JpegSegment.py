@@ -39,12 +39,10 @@ class JpegSegment:
         """
         if marker == APP0:
             # JFIF segment contains no meta, only image data
-            from jparse.AppSegment import AppSegment
-            Segment = AppSegment
+            from jparse.AppSegment import AppSegment as Segment
         elif marker == APP1:
             # standard Exif segment - Exif Attribute Information
-            from jparse.ExifSegment import ExifSegment
-            Segment = ExifSegment
+            from jparse.App1Segment import App1Segment as Segment
         elif APPn.check_mask(marker.signature):
             # custom APP segment, trying to parse it with generic exif parser
             from jparse.ExifSegment import ExifSegment # TODO: Generic

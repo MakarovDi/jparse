@@ -18,7 +18,7 @@ class ExifSegment(AppSegment):
     @property
     def tiff_header(self) -> Union[TiffHeader, None]:
         self.load()
-        return self._tiff_header
+        return self.__tiff_header
 
 
     def __getitem__(self, item: int) -> Union[ImageFileDirectory, None]:
@@ -39,7 +39,7 @@ class ExifSegment(AppSegment):
 
     def __init__(self, marker: JpegMarker, stream: IO, offset: int, size: int):
         super().__init__(marker=marker, stream=stream, offset=offset, size=size)
-        self._tiff_header = None
+        self.__tiff_header = None
 
 
     def load(self):
@@ -65,8 +65,8 @@ class ExifSegment(AppSegment):
         if byte[0] != 0x00:
             raise RuntimeError('unexpected format of exif-segment')
 
-        self._tiff_header = TiffHeader.parse(self._stream)
-        logger.debug(f'-> {self._tiff_header}')
+        self.__tiff_header = TiffHeader.parse(self._stream)
+        logger.debug(f'-> {self.__tiff_header}')
 
         self._is_loaded = True
 
