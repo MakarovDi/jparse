@@ -45,8 +45,7 @@ class JpegSegment:
             from jparse.App1Segment import App1Segment as Segment
         elif APPn.check_mask(marker.signature):
             # custom APP segment, trying to parse it with generic exif parser
-            from jparse.ExifSegment import ExifSegment # TODO: Generic
-            Segment = ExifSegment
+            from jparse.GenericExifSegment import GenericExifSegment as Segment
         else:
             Segment = JpegSegment
 
