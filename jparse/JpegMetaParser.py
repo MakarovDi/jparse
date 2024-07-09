@@ -6,6 +6,7 @@ from jparse import endianess
 from jparse.JpegMarker import JpegMarker, SOI, EOI, SOS, APPn
 from jparse.JpegSegment import JpegSegment
 from jparse.AppSegment import AppSegment
+from jparse.ExifSegment import ExifSegment
 from jparse.IfdField import ValueType
 from jparse.ImageFileDirectory import ImageFileDirectory
 
@@ -42,14 +43,14 @@ class JpegMetaParser:
     def __len__(self) -> int:
         return len(self.segments)
 
-    def __getitem__(self, item: str) ->  AppSegment:
+    def __getitem__(self, item: str) ->  Union[ExifSegment, AppSegment]:
         assert type(item) == str, 'item must be a str: e.g parser["APP0"]'
         return self._segments[item.upper()]
 
     def __iter__(self):
         return iter(self._segments.values())
 
-    def get_segment(self, marker_name: str) -> Union[AppSegment, None]:
+    def get_segment(self, marker_name: str) -> Union[ExifSegment, AppSegment, None]:
         return self._segments.get(marker_name.upper(), None)
 
 
@@ -63,9 +64,11 @@ class JpegMetaParser:
         self._structure = structure
 
         self._sos = None
+
+        # EOI will be available only if the whole file is parsed
         self._eoi = structure[-1] if structure[-1].marker == EOI else None
 
-        self._segments = OrderedDict[str, AppSegment]()
+        self._segments = OrderedDict[str, Union[ExifSegment, AppSegment]]()
         for segment in structure:
             if segment.marker == SOS:
                 self._sos = segment

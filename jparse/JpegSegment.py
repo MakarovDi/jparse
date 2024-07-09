@@ -1,5 +1,5 @@
 from typing import IO
-from jparse.JpegMarker import JpegMarker, APPn
+from jparse.JpegMarker import JpegMarker, APPn, APP0, APP1
 from jparse.log import logger
 
 
@@ -29,7 +29,7 @@ class JpegSegment:
         """
         Check if the segment's header already loaded (not the segment's content).
         """
-        return False
+        return True
 
 
     @staticmethod
@@ -37,9 +37,18 @@ class JpegSegment:
         """
         Segment creation factory method.
         """
-        if APPn.check_mask(marker.signature):
+        if marker == APP0:
+            # JFIF segment contains no meta, only image data
             from jparse.AppSegment import AppSegment
             Segment = AppSegment
+        elif marker == APP1:
+            # standard Exif segment - Exif Attribute Information
+            from jparse.ExifSegment import ExifSegment
+            Segment = ExifSegment
+        elif APPn.check_mask(marker.signature):
+            # custom APP segment, trying to parse it with generic exif parser
+            from jparse.ExifSegment import ExifSegment # TODO: Generic
+            Segment = ExifSegment
         else:
             Segment = JpegSegment
 
