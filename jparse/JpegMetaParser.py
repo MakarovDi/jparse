@@ -1,5 +1,5 @@
 from io import SEEK_CUR
-from typing import IO, List, Union, OrderedDict, NamedTuple
+from typing import IO, List, Union, OrderedDict
 
 from jparse import parser
 from jparse import endianess
@@ -10,15 +10,17 @@ from jparse.AppSegment import AppSegment
 from jparse.ExifSegment import ExifSegment
 from jparse.IfdField import ValueType
 from jparse.IFD import IFD
+from jparse.TagPath import TagPath
 
+from jparse.ExifInfo import ExifInfo
 
-class TagPath(NamedTuple):
-    app_name  : str
-    ifd_number: int
-    tag_id    : int
 
 
 class JpegMetaParser:
+
+    @property
+    def exif_info(self) -> ExifInfo:
+        return self._exif_info
 
     @property
     def app_segments(self) -> tuple[str, ...]:
@@ -80,6 +82,8 @@ class JpegMetaParser:
             elif APPn.check_mask(segment.marker.signature):
                 assert isinstance(segment, AppSegment)
                 self._segments[segment.marker.name.upper()] = segment
+
+        self._exif_info = ExifInfo(parser=self)
 
 
     def get_tag_value(self, tag_path: TagPath, default=None) -> Union[ValueType, None]:

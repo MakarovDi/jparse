@@ -4,5 +4,4 @@ from jparse.JpegMetaParser import JpegMetaParser, TagPath, ValueType
 from jparse.AppSegment import AppSegment
 from jparse.ExifSegment import ExifSegment
 from jparse.IFD import IFD, IfdField
-
-from jparse.log import logger
+from jparse.ExifInfo import ExifInfo
