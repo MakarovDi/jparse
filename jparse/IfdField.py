@@ -75,11 +75,22 @@ class IfdField:
             # IFD contain a lot of fields sometimes, so IfdFiled.parse() and IfdFiled.log() are hot.
             # The check for logging.DEBUG level will prevent formatting and repr overhead.
             indent = '\t'*tabs
-            logger.debug(f'{indent}Field[0x{self.tag_id:04X}]: {repr(self.field_type):>24s}, '
-                         f'count={self.count:<3d}, '
-                         f'size={self.size:<3d}, '
-                         f'field_offset=0x{self.offset:08X}, '
-                         f'value_offset=0x{self.value_offset:08X}')
+            logger.debug(f'{indent}{self}')
+
+    def __str__(self) -> str:
+        return (f'IfdField[0x{self.tag_id:04X}]: {self.field_type.name:<10s}, '
+                f'count={self.count:<3d}, '
+                f'size={self.size:<3d}, '
+                f'field_offset=0x{self.offset:08X}, '
+                f'value_offset=0x{self.value_offset:08X}')
+
+    def __repr__(self) -> str:
+        return (f'IfdField(tag_id=0x{self.tag_id:04X}, '
+                f'count={self.count:<3d}, '
+                f'field_type={self.field_type.name:<10s}, '
+                f'field_offset=0x{self.offset:08X}, '
+                f'size={self.size:<3d}, '
+                f'value_offset=0x{self.value_offset:08X}')
 
     def load(self):
         if self.is_loaded: return
