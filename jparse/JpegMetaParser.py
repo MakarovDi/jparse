@@ -41,6 +41,10 @@ class JpegMetaParser:
             raise RuntimeError('use JpegMetaParser(estimate_image_size=True, ...)')
         return self._eoi.offset - self._sos.offset - self._sos.size
 
+    @property
+    def stream(self) -> IO:
+        return self._stream
+
     def __len__(self) -> int:
         return len(self.segments)
 
