@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from io import SEEK_CUR
-from typing import IO, OrderedDict, Union
-from collections.abc import Iterable, Iterator
+from typing import IO, Union
+from collections.abc import Iterator
 
 from jparse import parser
 from jparse import endianess
@@ -69,7 +69,8 @@ class IFD:
         self.__field_count = filed_count
 
         # lazy field loading and caching
-        self.__fields = OrderedDict[int, IfdField]()
+        self.__fields: dict[int, IfdField] = {}
+        self.__fields_array = []
         self.__next_filed_offset = self.__offset + 2 # sizeof(field_count) = 2
 
         # the size will be updated with each loaded field
@@ -141,9 +142,9 @@ class IFD:
                 return ifd_filed
 
     def _get_field_by_index(self, index: int) -> Union[IfdField, None]:
-        if len(self.__fields) > index:
-            field = iterate_to_index(self.__fields.values(), index=index)
-            return field
+        if len(self.__fields_array) > index:
+            # field = iterate_to_index(self.__fields.values(), index=index)
+            return self.__fields_array[index]
 
         index -= len(self.__fields) - 1
         field = None
@@ -168,6 +169,7 @@ class IFD:
 
         self.__size += ifd_field.size
         self.__fields[ifd_field.tag_id] = ifd_field
+        self.__fields_array.append(ifd_field)
         self.__next_filed_offset += 12 # sizeof(ifd_filed_header)
 
         return ifd_field
@@ -187,15 +189,3 @@ class IfdIterator(Iterator):
         self._index += 1
 
         return field
-
-
-def iterate_to_index(sequence: Iterable, index: int):
-    """
-    Scroll iterable sequence to specified index.
-    """
-    iterator = iter(sequence)
-    value = next(iterator)
-    while index > 1:
-        index -= 1
-        value = next(iterator)
-    return value
