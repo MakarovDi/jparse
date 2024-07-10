@@ -1,28 +1,32 @@
 import struct
-from enum import IntEnum
-from functools import partial
+from enum import Enum
 
 
-class ByteOrder(IntEnum):
-    LITTLE_ENDIAN = 0
-    BIG_ENDIAN    = 1
-
-    @property
-    def format_chr(self) -> chr:
-        return { ByteOrder.LITTLE_ENDIAN: '<', ByteOrder.BIG_ENDIAN: '>' }[self]
+class ByteOrder(Enum):
+    LITTLE_ENDIAN = '<'
+    BIG_ENDIAN = '>'
 
 
-
-def convert(data: bytes, byte_order: ByteOrder) -> int:
-    byte_cnt = len(data)
-    assert byte_cnt in (1, 2, 4), 'unsupported data size'
-
-    format_str = { 1: 'B', 2: 'H', 4: 'I' }[byte_cnt]
-    result = struct.unpack(f'{byte_order.format_chr}{format_str}', data)
-
-    return int(result[0])
+TYPE_STR_MAPPING: dict[int, chr] = { 1: 'B', 2: 'H', 4: 'I' }
 
 
+def convert(data: bytes, byte_order: ByteOrder, data_type: chr=None):
+    byte_order = '<' if byte_order == ByteOrder.LITTLE_ENDIAN else '>'
+    # Note: byte_order = byte_order.value is slower
 
-convert_big_endian = partial(convert, byte_order=ByteOrder.BIG_ENDIAN)
-convert_little_endian = partial(convert, byte_order=ByteOrder.LITTLE_ENDIAN)
+    if data_type is None:
+        # type auto-detection by size
+        byte_cnt = len(data)
+        assert byte_cnt in (1, 2, 4), 'unsupported data size'
+        data_type = TYPE_STR_MAPPING[byte_cnt]
+
+    result = struct.unpack(f'{byte_order}{data_type}', data)
+    return result[0]
+
+
+def convert_big_endian(data: bytes) -> int:
+    return convert(data=data, byte_order=ByteOrder.BIG_ENDIAN)
+
+
+def convert_little_endian(data: bytes) -> int:
+    return convert(data=data, byte_order=ByteOrder.LITTLE_ENDIAN)

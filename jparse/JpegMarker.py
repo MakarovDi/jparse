@@ -82,11 +82,11 @@ class JpegMarker:
         if (signature >> 8) != JpegMarker.START:
             raise RuntimeError(f'invalid signature: 0x{signature:04X}')
 
-        marker = single_markers.get(signature)
+        marker = SIGNATURE_TO_MARKER_MAPPING.get(signature)
         if marker is not None:
             return marker
 
-        # check for APP0-APP15
+        # check for custom APP0-APP15
         if APPn.check_mask(signature):
             app_marker = APPn.copy()
             app_marker.set_index(index=APPn.extract_index(signature))
@@ -116,8 +116,12 @@ COM = JpegMarker(signature=0xFFFE, name='COM', info='Comment')
 RSTn = JpegMarker(signature=0xFFD7, name='RST', is_mask=True, info='Restart')
 APPn = JpegMarker(signature=0xFFEF, name='APP', is_mask=True, info='Application-specific')
 
+APP0 = JpegMarker(signature=0xFFE0, name='APP0', is_mask=False, info='JFIF Segment')
+APP1 = JpegMarker(signature=0xFFE1, name='APP1', is_mask=False, info='Exif Attribute Information')
+APP2 = JpegMarker(signature=0xFFE2, name='APP2', is_mask=False, info='Exif extended data')
 
-single_markers = {
+
+SIGNATURE_TO_MARKER_MAPPING = {
     SOI.signature : SOI,
     EOI.signature : EOI,
     SOF0.signature: SOF0,
@@ -125,5 +129,8 @@ single_markers = {
     DHT.signature : DHT,
     DQT.signature : DQT,
     DRI.signature : DRI,
-    SOS.signature : SOS
+    SOS.signature : SOS,
+    APP0.signature: APP0,
+    APP1.signature: APP1,
+    APP2.signature: APP2,
 }

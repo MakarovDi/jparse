@@ -1,6 +1,6 @@
 from typing import IO
-from jparse.JpegMarker import JpegMarker, APPn
-from jparse import tools
+from jparse.JpegMarker import JpegMarker, APPn, APP0, APP1, APP2
+from jparse.log import logger
 
 
 class JpegSegment:
@@ -10,7 +10,14 @@ class JpegSegment:
         return self._marker
 
     @property
+    def name(self) -> str:
+        return self.marker.name
+
+    @property
     def offset(self) -> int:
+        """
+        The segment offset from the file start.
+        """
         return self._offset
 
     @property
@@ -19,21 +26,34 @@ class JpegSegment:
 
     @property
     def is_loaded(self) -> bool:
-        return False
+        """
+        Check if the segment's header already loaded (not the segment's content).
+        """
+        return True
 
 
     @staticmethod
     def create(marker: JpegMarker, stream: IO, offset: int, size: int) -> 'JpegSegment':
-        if APPn.check_mask(marker.signature):
-            from jparse.AppSegment import AppSegment
-            SegmentType = AppSegment
+        """
+        Segment creation factory method.
+        """
+        if marker in [APP0, APP2]:
+            # APP0 - JFIF segment contains no meta, only image data
+            # APP2 - Extended Exif (FlashPix)
+            from jparse.AppSegment import AppSegment as Segment
+        elif marker == APP1:
+            # standard Exif segment - Exif Attribute Information
+            from jparse.App1Segment import App1Segment as Segment
+        elif APPn.check_mask(marker.signature):
+            # custom APP segment, trying to parse it with generic exif parser
+            from jparse.GenericExifSegment import GenericExifSegment as Segment
         else:
-            SegmentType = JpegSegment
+            Segment = JpegSegment
 
-        return SegmentType(marker=marker,
-                           stream=stream,
-                           offset=offset,
-                           size=size)
+        return Segment(marker=marker,
+                       stream=stream,
+                       offset=offset,
+                       size=size)
 
 
     def __init__(self, marker: JpegMarker, stream: IO, offset: int, size: int):
@@ -44,15 +64,19 @@ class JpegSegment:
 
 
     def __str__(self) -> str:
-        return f'{self.marker.name} - offset: 0x{self.offset:08X} - {self.size} bytes'
+        return f'{self.marker.name} - offset: 0x{self.offset:08X}, {self.size} bytes'
 
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}(marker={repr(self.marker)}, offset={self.offset}, size={self.size})'
 
 
     def log(self):
-        tools.logger.debug(f'0x{self.offset:08X} -> {self.marker.name:5s}: {self.size} bytes')
+        logger.debug(f'0x{self.offset:08X} -> {self.marker.name:5s}: {self.size} bytes')
 
 
     def load(self):
-        raise NotImplementedError()
+        """
+        Load segment header without content.
+        It will be called automatically when the segment property is accessed.
+        """
+        pass

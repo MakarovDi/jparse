@@ -1,113 +1,54 @@
-from typing import IO, Tuple
+from typing import IO
 
-from jparse import tools
+from jparse import parser
+from jparse.log import logger
 from jparse.JpegMarker import JpegMarker
 from jparse.JpegSegment import JpegSegment
-from jparse.TiffHeader import TiffHeader
-from jparse.ImageFileDirectory import ImageFileDirectory
 
-# TODO: special class for JFIF [APP0] segment
-# TODO: special class for Exif [APP1] segment
 
 class AppSegment(JpegSegment):
+    """
+    Basic container for the APPx segments.
+    """
 
     @property
     def is_loaded(self) -> bool:
+        """
+        Check if the segment's header already loaded (not the segment's content).
+        """
         return self._is_loaded
 
     @property
     def name(self) -> str:
-        if not self.is_loaded:
-            # TODO: load only name
-            self.load()
+        self.load()
         return self._name
-
-    @property
-    def tiff_header(self) -> TiffHeader:
-        if not self.is_loaded:
-            self.load()
-        return self._tiff_header
-
-    @property
-    def ifd(self) -> Tuple[ImageFileDirectory, ...]:
-        if not self.is_loaded:
-            self.load()
-        return self._ifd
 
 
     def __init__(self, marker: JpegMarker, stream: IO, offset: int, size: int):
         super().__init__(marker=marker, stream=stream, offset=offset, size=size)
 
-        self._tiff_header = None
         self._name = None
         self._is_loaded = False
-        self._ifd = None
+
+
+    def __str__(self) -> str:
+        return f'{self.marker.name} - {self.name} - offset: 0x{self.offset:08X}, {self.size} bytes'
+
+    def __repr__(self) -> str:
+        return f'{self.__class__.__name__}(marker={repr(self.marker)}, name={repr(self.name)}, offset={self.offset}, size={self.size})'
 
 
     def load(self):
+        """
+        Load segment header without loading the segment content.
+        It will be called automatically when the segment property is accessed.
+        """
         if self.is_loaded: return
-        self._stream.seek(self.offset)
 
-        tools.logger.debug(f'[{self.marker.name}] segment loading...')
         self._stream.seek(self.offset + JpegMarker.MARKER_SIZE + JpegMarker.LENGTH_SIZE)
+        logger.debug(f'[{self.marker.name}] segment loading...')
 
-        self._name = parse_app_name(self._stream)
-        tools.logger.debug(f'-> name: {self._name}')
+        self._name = parser.parse_app_name(self._stream)
+        logger.debug(f'-> name: {self._name}')
 
-        if self._name.upper() == 'JFIF':
-            self._is_loaded = True
-            return
-
-        # Exif or custom APP[2-15]
-        byte = tools.read_bytes_strict(self._stream, 1)  # skip one more 0x00 byte ('Exif\0x00\0x00')
-        if byte[0] != 0x00:
-            raise RuntimeError('unexpected format of APP segment')
-
-        # parse tiff header
-
-        self._tiff_header = TiffHeader.parse(self._stream)
-        tools.logger.debug(f'-> {self._tiff_header}')
-
-        # parse IFD
-
-        next_ifd_offset = self._tiff_header.offset + self._tiff_header.ifd0_offset
-        next_offset_filed_used = False
-        ifd = []
-        while True:
-            self._stream.seek(next_ifd_offset)
-            tools.logger.debug(f'-> IDF #{len(ifd)}, offset=0x{next_ifd_offset:08X}')
-
-            ifd_i = ImageFileDirectory.parse(self._stream, tiff_header=self._tiff_header)
-            ifd.append(ifd_i)
-
-            if next_offset_filed_used and ifd_i.next_ifd_offset == 0:
-                break # the last ifd is reached
-
-            if ifd_i.next_ifd_offset > 0:
-                next_ifd_offset = self._tiff_header.offset + ifd_i.next_ifd_offset
-                next_offset_filed_used = True
-            else:
-                assert ifd_i.offset + ifd_i.size <= self.offset + self.size, 'smth wrong with sizes'
-
-                # some camera manufactures put IFDs one by one without next_ifd_offset
-                if ifd_i.offset + ifd_i.size == self.offset + self.size:
-                    break # the end of the segment is reached
-
-                next_ifd_offset = ifd_i.offset + ifd_i.size
-
-        self._ifd = tuple(ifd)
-
-
-
-def parse_app_name(stream: IO) -> str:
-    name = ''
-
-    while True:
-        byte = tools.read_bytes_strict(stream, 1)
-
-        if byte[0] == 0x00:
-            break
-
-        name = name + byte.decode('ascii')
-
-    return name
+        self._is_loaded = True
