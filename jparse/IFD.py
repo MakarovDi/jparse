@@ -112,7 +112,7 @@ class IFD:
         field_count = endianess.convert(field_count, byte_order=tiff_header.byte_order)
 
         # skip field headers, it will be loaded on request (lazy loading)
-        stream.seek(field_count*12, SEEK_CUR)
+        stream.seek(field_count*IfdField.HEADER_SIZE, SEEK_CUR)
 
         next_ifd_offset = parser.read_bytes_strict(stream, 4)
         next_ifd_offset = endianess.convert(next_ifd_offset, byte_order=tiff_header.byte_order)
@@ -170,7 +170,7 @@ class IFD:
         self.__size += ifd_field.size
         self.__fields[ifd_field.tag_id] = ifd_field
         self.__fields_array.append(ifd_field)
-        self.__next_filed_offset += 12 # sizeof(ifd_filed_header)
+        self.__next_filed_offset += IfdField.HEADER_SIZE
 
         return ifd_field
 

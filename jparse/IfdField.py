@@ -14,7 +14,7 @@ ValueType = Union[Number, str, Tuple[Number, ...]]
 
 
 class IfdField:
-    FIXED_SIZE = 12
+    HEADER_SIZE = 12
 
     @property
     def offset(self) -> int:
@@ -124,12 +124,12 @@ class IfdField:
         if field_size <= 4:
             value_offset = field_offset + 8
             stream.seek(4, io.SEEK_CUR) # skip value data
-            field_size = IfdField.FIXED_SIZE # no extra data outside the field structure
+            field_size = IfdField.HEADER_SIZE # no extra data outside the field structure
         else:
             value_offset = parser.read_bytes_strict(stream, 4)
             value_offset = endianess.convert(value_offset, byte_order=tiff_header.byte_order)
             value_offset += tiff_header.offset
-            field_size = parser.align4(field_size) + IfdField.FIXED_SIZE
+            field_size = parser.align4(field_size) + IfdField.HEADER_SIZE
 
         return IfdField(tag_id=tag_id,
                         count=count,
