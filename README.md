@@ -83,8 +83,8 @@ with open('image.jpg', 'rb') as f:
 Output:
 ```
 APP1 - Exif - offset: 0x00000002, 3388 bytes
-ImageFileDirectory(fields=12, next_ifd_offset=714, size=246, offset=20)
-ImageFileDirectory(fields=3, next_ifd_offset=0, size=42, offset=726)
+IFD(index=0, fields=12, next_ifd_offset=714, offset=20)
+IFD(index=1, fields=3, next_ifd_offset=0, offset=726)
 ```
 
 
@@ -128,7 +128,9 @@ logging.basicConfig(format='[%(name)s][%(levelname)s]: %(message)s', level=loggi
 with open('image.jpg', 'rb') as f:
     parser = JpegMetaParser(f)
     app1 = parser['APP1']
-    app1.load()
+    for ifd in app1:
+        for f in ifd:
+            f.load()
 ```
 
 Output:
