@@ -1,7 +1,8 @@
-# v0.2.0 - ??.07.2024
+# v0.2.0 - 11.07.2024
 
 ##### New
-* `x3` speed up from lazy loading.
+* `x3` speed up via lazy loading.
+* `[JpegMetaParser]` exif info parsing (`APP1`).
 * `[JpegMetaParser]` indexing support for segments: e.g. `parser['APP1']`.
 * `[JpegMetaParser]` iterator support: `for segment in parser: ...`.
 * `[JpegMetaParser]` support for `len()` function: `len(parser)` -> number of segments.
