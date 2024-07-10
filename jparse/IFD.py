@@ -158,7 +158,7 @@ class IFD:
 
 
     def _load_next_filed(self) -> Union[IfdField, None]:
-        if len(self.__fields) == self.__field_count:
+        if len(self.__fields_array) == self.__field_count:
             # all fields already loaded
             return None
 
