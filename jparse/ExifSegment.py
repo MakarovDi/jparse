@@ -75,8 +75,8 @@ class ExifIterator(Iterator):
     """
     Iterator for ExifSegment to enable for-support:
 
-        for idf in segment:
-            print(idf)
+        for ifd in segment:
+            print(ifd)
 
     """
 
@@ -85,12 +85,12 @@ class ExifIterator(Iterator):
         self._idx = 0
 
     def __next__(self) -> IFD:
-        idf = self._segment.ifd(self._idx)
+        ifd = self._segment.ifd(self._idx)
 
-        if idf is None:
-            # reached last IDF inside the segment
+        if ifd is None:
+            # reached last IFD inside the segment
             raise StopIteration()
 
         self._idx += 1
 
-        return idf
+        return ifd

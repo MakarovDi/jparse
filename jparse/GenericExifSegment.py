@@ -63,7 +63,7 @@ class GenericExifSegment(ExifSegment):
         ifd_index = len(self.__ifd)
 
         self._stream.seek(self.__next_ifd_offset)
-        logger.debug(f'-> IDF #{ifd_index}, offset=0x{self.__next_ifd_offset:08X}')
+        logger.debug(f'-> IFD #{ifd_index}, offset=0x{self.__next_ifd_offset:08X}')
 
         # parse IFD header (without filed value loading)
         ifd_i = IFD.parse(self._stream, tiff_header=self.tiff_header, index=ifd_index)

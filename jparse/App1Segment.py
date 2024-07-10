@@ -55,7 +55,7 @@ class App1Segment(ExifSegment):
             return None
 
         ifd0_offset = self.tiff_header.offset + self.tiff_header.ifd0_offset
-        logger.debug(f'-> IDF #0, offset=0x{ifd0_offset:08X}')
+        logger.debug(f'-> IFD #0, offset=0x{ifd0_offset:08X}')
 
         self._stream.seek(ifd0_offset)
         self.__ifd0 = IFD.parse(self._stream, tiff_header=self.tiff_header, index=0)
@@ -76,7 +76,7 @@ class App1Segment(ExifSegment):
             return None
 
         ifd1_offset = self.tiff_header.offset + ifd0.next_ifd_offset
-        logger.debug(f'-> IDF #1, offset=0x{ifd1_offset:08X}')
+        logger.debug(f'-> IFD #1, offset=0x{ifd1_offset:08X}')
 
         self._stream.seek(ifd1_offset)
         self.__ifd1 = IFD.parse(self._stream, tiff_header=self.tiff_header, index=1)

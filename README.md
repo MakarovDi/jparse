@@ -151,7 +151,7 @@ Output:
 [jparse][DEBUG]: [APP1] segment loading...
 [jparse][DEBUG]: -> name: Exif
 [jparse][DEBUG]: -> TiffHeader(byte_order=BIG_ENDIAN, ifd0_offset=8)
-[jparse][DEBUG]: -> IDF #0, offset=0x00000014
+[jparse][DEBUG]: -> IFD #0, offset=0x00000014
 [jparse][DEBUG]: 		Field[0x0112]:     <FieldType.Short: 3>, count=1  , size=12 , field_offset=0x00000016, value_offset=0x0000001E
 [jparse][DEBUG]: 		Field[0x010F]:     <FieldType.ASCII: 2>, count=21 , size=36 , field_offset=0x00000022, value_offset=0x000000AA
 [jparse][DEBUG]: 		Field[0x0110]:     <FieldType.ASCII: 2>, count=8  , size=20 , field_offset=0x0000002E, value_offset=0x000000BF
@@ -164,7 +164,7 @@ Output:
 [jparse][DEBUG]: 		Field[0x0100]:      <FieldType.Long: 4>, count=1  , size=12 , field_offset=0x00000082, value_offset=0x0000008A
 [jparse][DEBUG]: 		Field[0x0101]:      <FieldType.Long: 4>, count=1  , size=12 , field_offset=0x0000008E, value_offset=0x00000096
 [jparse][DEBUG]: 		Field[0x8769]:      <FieldType.Long: 4>, count=1  , size=12 , field_offset=0x0000009A, value_offset=0x000000A2
-[jparse][DEBUG]: -> IDF #1, offset=0x000002D6
+[jparse][DEBUG]: -> IFD #1, offset=0x000002D6
 [jparse][DEBUG]: 		Field[0x0201]:      <FieldType.Long: 4>, count=1  , size=12 , field_offset=0x000002D8, value_offset=0x000002E0
 [jparse][DEBUG]: 		Field[0x0202]:      <FieldType.Long: 4>, count=1  , size=12 , field_offset=0x000002E4, value_offset=0x000002EC
 [jparse][DEBUG]: 		Field[0x0103]:     <FieldType.Short: 3>, count=1  , size=12 , field_offset=0x000002F0, value_offset=0x000002F8
