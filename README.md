@@ -5,6 +5,20 @@
 
 JPEG structure and Exif metadata parsing library.
 
+1. [JPEG File Structure](#jpeg-file-structure)
+2. [Requirements](#requirements)
+3. [Installation](#installation)
+4. [Usage Examples](#usage-examples)
+    - [Printing Exif Info](#printing-exif-info)
+    - [Reading Exif Tag](#reading-exif-tag)
+    - [Listing Segments](#listing-segments)
+    - [Listing IFDs](#listing-ifds)
+    - [Listing an IFD's Fields](#listing-an-ifds-fields)
+5. [Logging](#logging)
+6. [License](#license)
+7. [Links](#links)
+8. [TODO](#todo)
+
 ## JPEG File Structure
 
 <img src='docs/jpeg_format.png' width='700'>
@@ -15,15 +29,43 @@ JPEG structure and Exif metadata parsing library.
 * No extra dependencies
 
 
-## Install
+## Installation
 
 ```
 pip install "jparse @ git+https://github.com/makarovdi/jparse.git@master"
 ```
 
-## Examples
+## Usage Examples
 
-### Reading TAG value
+### Printing Exif Info
+
+```python
+from jparse import JpegMetaParser
+
+with open('image.jpg', 'rb') as f:
+    parser = JpegMetaParser(f)
+    print(parser.exif_info)
+```
+
+Output:
+```
+Exif Info:
+    image_width                 : 3264
+    image_height                : 2448
+    orientation                 : 1
+    ycbcr_sub_positioning       : 1
+    x_resolution                : 72.0
+    y_resolution                : 72.0
+    resolution_unit             : 2
+    datetime                    : 2024:07:08 17:34:41
+    make                        : Microsoft Corporation
+    model                       : MSHW0141
+    software                    : Exif Software Version 2.2
+    ...
+```
+
+
+### Reading Exif Tag
 
 ```python
 from jparse import JpegMetaParser, TagPath
@@ -88,7 +130,7 @@ IFD(index=1, fields=3, next_ifd_offset=0, offset=726)
 ```
 
 
-### Listing IFD's fields
+### Listing an IFD's Fields
 
 ```python
 from jparse import JpegMetaParser
@@ -116,7 +158,7 @@ TAG 0x011B: 72
 ```
 
 
-## Debug Logging
+## Logging
 
 ```python
 import logging
@@ -129,8 +171,8 @@ with open('image.jpg', 'rb') as f:
     parser = JpegMetaParser(f)
     app1 = parser['APP1']
     for ifd in app1:
-        for f in ifd:
-            f.load()
+        for field in ifd:
+            field.load()
 ```
 
 Output:
